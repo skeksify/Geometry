@@ -18,199 +18,176 @@
 <body>
 
     <canvas id="canvas" width="600" height="600" class="playable-canvas"></canvas>
+    <canvas id="canvas2" width="600" height="600" class="playable-canvas"></canvas>
 
     <script>
-        var canvas = document.getElementById("canvas"),
-            canvasDim = {
-                width: canvas.width,
-                height: canvas.height
-            },
-            ctx = canvas.getContext("2d"),
-            sub6 = function(num) {
-                return ("" + num).substr(0, 6);
-            },
-            penCache = {
-                cache: {
-                    lines: {},
-                    circles: {},
-                    arches: {}
-                },
-                getPermission: function(x, y, rad, type, phi1, phi2) {
-                    var key = sub6(x) + sub6(y) + sub6(rad),
-                        archKey = typeof(phi1) !== "undefined" ? key + sub6(phi1) + sub6(phi2) : "",
-                        result;
+		var geometryMaker = function (id) {	
+			var canvas = document.getElementById(id),
+				ctx = canvas.getContext("2d"),
+				hash = function(num) { return ("" + num).substr(0, 6); },
+				cosRatio = Math.cos(Math.PI / 6),
+				sinRatio = Math.sin(Math.PI / 6), // 0.5!
+				vertices = {
+					midToTop: function(x, y, rad) { return { x: x, y: y - rad }; },
+					topToTopR: function(x, y, rad) { return { x: x + rad * cosRatio, y: y + rad * sinRatio }; },
+					topRToBotR: function(x, y, rad) { return { x: x, y: y + rad }; },
+					botRToBot: function(x, y, rad) { return { x: x - rad * cosRatio, y: y + rad * sinRatio }; },
+					botToBotL: function(x, y, rad) { return { x: x - rad * cosRatio, y: y - rad * sinRatio }; },
+					botLToTopL: function(x, y, rad) { return { x: x, y: y - rad }; }
+					//,topLTTop: function (x, y, rad) { return { x: x + rad * cosRatio, y: y - rad * sinRatio }; }
+				},
+				penCache = {
+					cache: {
+						lines: {},
+						circles: {},
+						arches: {}
+					},
+					getPermission: function(x, y, rad, type, phi1, phi2) {
+						var key = hash(x) + hash(y) + hash(rad),
+							archKey = typeof(phi1) !== "undefined" ? key + hash(phi1) + hash(phi2) : "",
+							result;
 
-                    if (this.cache[type][archKey || key]) {
-                        result = false;
-                    } else {
-                        this.cache[type][archKey || key] = true;
-                        result = true;
-                    }
-                    if (type === "arches" && this.cache.circles[key]) {
-                        result = false;
-                    }
-                    return result;
-                }
-            },
-            getMidPoint = function(x1, y1, x2, y2) {
-                var result = {
-                    x: (x1 + x2) / 2,
-                    y: (y1 + y2) / 2
-                };
-                return result;
-            },
-            getArch = function(index) {
-                return {
-                    phi1: Math.PI / 6 * ((index * 2) + 1),
-                    phi2: Math.PI / 6 * (((index * 2) + 5) % 12)
-                }
-            },
-            makeHex = function(centerX, centerY, radius) {
-                var cosRatio = Math.cos(Math.PI / 6),
-                    sinRatio = Math.sin(Math.PI / 6), // 0.5!
-                    vertices = {
-                        midToTop: function(x, y, rad) {
-                            return {
-                                x: x,
-                                y: y - rad
-                            };
-                        },
-                        topToTopR: function(x, y, rad) {
-                            return {
-                                x: x + rad * cosRatio,
-                                y: y + rad * sinRatio
-                            };
-                        },
-                        topRToBotR: function(x, y, rad) {
-                            return {
-                                x: x,
-                                y: y + rad
-                            };
-                        },
-                        botRToBot: function(x, y, rad) {
-                            return {
-                                x: x - rad * cosRatio,
-                                y: y + rad * sinRatio
-                            };
-                        },
-                        botToBotL: function(x, y, rad) {
-                            return {
-                                x: x - rad * cosRatio,
-                                y: y - rad * sinRatio
-                            };
-                        },
-                        botLToTopL: function(x, y, rad) {
-                                return {
-                                    x: x,
-                                    y: y - rad
-                                };
-                            }
-                            //,topLTTop: function (x, y, rad) { return { x: x + rad * cosRatio, y: y - rad * sinRatio }; }
-                    },
-                    result = [],
-                    key,
-                    currentPoint = {
-                        x: centerX,
-                        y: centerY
-                    };
+						if (this.cache[type][archKey || key]) {
+							result = false;
+						} else {
+							this.cache[type][archKey || key] = true;
+							result = true;
+						}
+						if (type === "arches" && this.cache.circles[key]) {
+							result = false;
+						}
+						return result;
+					}
+				},
+				getMidPoint = function(x1, y1, x2, y2) {
+					var result = {
+						x: (x1 + x2) / 2,
+						y: (y1 + y2) / 2
+					};
+					return result;
+				},
+				getArch = function(index) {
+					return {
+						phi1: Math.PI / 6 * ((index * 2) + 1),
+						phi2: Math.PI / 6 * (((index * 2) + 5) % 12)
+					}
+				},
+				makeHex = function(centerX, centerY, radius) {
+					var result = [],
+						key,
+						currentPoint = { x: centerX, y: centerY };
 
-                for (key in vertices) {
-                    currentPoint = vertices[key](currentPoint.x, currentPoint.y, radius);
-                    result.push({
-                        x: currentPoint.x,
-                        y: currentPoint.y
-                    });
-                }
-                return result;
-            },
-            drawLine = function(x1, y1, x2, y2) {
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.stroke();
-            },
-            drawHex = function(centerX, centerY, radius) {
-                var aHex = makeHex(centerX, centerY, radius),
-                    i;
+					for (key in vertices) {
+						currentPoint = vertices[key](currentPoint.x, currentPoint.y, radius);
+						result.push({
+							x: currentPoint.x,
+							y: currentPoint.y
+						});
+					}
+					return result;
+				},
+				drawLine = function(x1, y1, x2, y2) {
+					ctx.moveTo(x1, y1);
+					ctx.lineTo(x2, y2);
+					ctx.stroke();
+				},
+				drawHex = function(centerX, centerY, radius) {
+					var aHex = makeHex(centerX, centerY, radius),
+						i;
 
-                ctx.moveTo(aHex[0].x, aHex[0].y);
-                for (i = 1; i < aHex.length; i++) {
-                    ctx.lineTo(aHex[i].x, aHex[i].y);
-                }
-                ctx.closePath();
-                ctx.stroke();
-                return aHex;
-            },
-            drawCircle = function(centerX, centerY, radius) {
-                if (penCache.getPermission(centerX, centerY, radius, "circles")) {
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-                    ctx.stroke();
-                }
-            },
-            drawTwoThirdsHexArc = function(centerX, centerY, radius, index) {
-                var arch = getArch(index);
+					ctx.moveTo(aHex[0].x, aHex[0].y);
+					for (i = 1; i < aHex.length; i++) {
+						ctx.lineTo(aHex[i].x, aHex[i].y);
+					}
+					ctx.closePath();
+					ctx.stroke();
+					return aHex;
+				},
+				drawCircle = function(centerX, centerY, radius) {
+					if (penCache.getPermission(centerX, centerY, radius, "circles")) {
+						ctx.beginPath();
+						ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+						ctx.stroke();
+					}
+				},
+				drawTwoThirdsHexArc = function(centerX, centerY, radius, index) {
+					var arch = getArch(index);
 
-                if (penCache.getPermission(centerX, centerY, radius, "arches", arch.phi1, arch.phi2)) {
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, radius, arch.phi1, arch.phi2);
-                    ctx.stroke();
-                }
-            },
-            drawFlowerHex = function(c1, c2, radius, withHex) {
-                var myHex = (withHex ? drawHex : makeHex)(c1, c2, radius),
-                    i;
+					if (penCache.getPermission(centerX, centerY, radius, "arches", arch.phi1, arch.phi2)) {
+						ctx.beginPath();
+						ctx.arc(centerX, centerY, radius, arch.phi1, arch.phi2);
+						ctx.stroke();
+					}
+				},
+				drawFlowerHex = function(c1, c2, radius, withHex, withCircle) {
+					var myHex = (withHex ? drawHex : makeHex)(c1, c2, radius),
+						i;
 
-                //drawCircle(c1, c2, radius);	  
-                for (i = 0; i < 6; i++) {
-                    drawTwoThirdsHexArc(myHex[i].x, myHex[i].y, radius, i);
-                }
-                return myHex;
-            },
-            drawFlowerOfLife = function(c1, c2, radius) {
-                var myHex = makeHex(c1, c2, radius),
-                    i, j,
-                    midHex = drawFlowerHex(c1, c2, radius / 2),
-                    midMidHex, midPoint;
+					if (withCircle) {
+						drawCircle(c1, c2, radius);
+					}
+					for (i = 0; i < 6; i++) {
+						drawTwoThirdsHexArc(myHex[i].x, myHex[i].y, radius, i);
+					}
+					return myHex;
+				},
+				drawFlowerOfLife = function() {
+					var c1 = canvas.width/2, c2 = canvas.height/2, radius = canvas.width/4,
+						myHex = makeHex(c1, c2, radius),
+						i, j,
+						midHex = drawFlowerHex(c1, c2, radius / 2, 0, 1),
+						midMidHex, midPoint;
 
-                for (i = 0; i < 6; i++) {
-                    drawFlowerHex(myHex[i].x, myHex[i].y, radius / 2);
+					for (i = 0; i < 6; i++) {
+						drawFlowerHex(myHex[i].x, myHex[i].y, radius / 2, 0, 1);
 
-                    drawFlowerHex(midHex[i].x, midHex[i].y, radius / 2);
-                    midPoint = getMidPoint(myHex[i].x, myHex[i].y, myHex[(i + 1) % 6].x, myHex[(i + 1) % 6].y);
-                    drawFlowerHex(midPoint.x, midPoint.y, radius / 2);
-                }
+						drawFlowerHex(midHex[i].x, midHex[i].y, radius / 2);
+						midPoint = getMidPoint(myHex[i].x, myHex[i].y, myHex[(i + 1) % 6].x, myHex[(i + 1) % 6].y);
+						drawFlowerHex(midPoint.x, midPoint.y, radius / 2, 0, 1);
+					}
 
-                //drawCircle(c1, c2, radius);
-                drawCircle(c1, c2, radius * 1.5);
+					//drawCircle(c1, c2, radius);
+					drawCircle(c1, c2, radius * 1.5);
 
-            },
-            drawTiledHex = function(c1, c2, radius, full) {
-                var myHex = drawHex(c1, c2, radius),
-                    i, j,
-                    midHex = drawFlowerHex(c1, c2, radius / 2, full),
-                    midMidHex, midPoint, x1, y1, x2, y2;
+				},
+				drawTiledHex = function(c1, c2, radius, full) {
+					var c1 = canvas.width/2, c2 = canvas.height/2, radius = canvas.width/4,
+						myHex = drawHex(c1, c2, radius),
+						i, j,
+						midHex = drawFlowerHex(c1, c2, radius / 2, full),
+						midMidHex, midPoint, x1, y1, x2, y2;
 
-                for (i = 0; i < 6; i++) {
-                    x1 = myHex[i].x;
-                    y1 = myHex[i].y;
-                    midMidHex = drawFlowerHex(x1, y1, radius / 2, full);
-                    for (j = 0; j < 6; j++) {
-                        drawFlowerHex(midMidHex[j].x, midMidHex[j].y, radius / 2, full);
-                    }
-                }
-                drawDiagonals(myHex);
-                drawDiagonals(drawHex(c1, c2, radius * 2))
-            },
-            drawDiagonals = function(hex) {
-                var i, j;
-                for (i = 0; i < 6; i++) {
-                    for (j = 0; j < 6; j++) {
-                        drawLine(hex[i].x, hex[i].y, hex[j].x, hex[j].y);
-                    }
-                }
-            }
-
-        drawTiledHex(canvas.width / 2, canvas.height / 2, canvas.width / 4, true)
+					for (i = 0; i < 6; i++) {
+						x1 = myHex[i].x;
+						y1 = myHex[i].y;
+						midMidHex = drawFlowerHex(x1, y1, radius / 2, full);
+						for (j = 0; j < 6; j++) {
+							drawFlowerHex(midMidHex[j].x, midMidHex[j].y, radius / 2, full);
+						}
+					}
+					drawDiagonals(myHex);
+					drawDiagonals(drawHex(c1, c2, radius * 2))
+				},
+				drawDiagonals = function(hex) {
+					var i, j;
+					
+					for (i = 0; i < 6; i++) {
+						for (j = 0; j < 6; j++) {
+							//ctx.strokeStyle = 'rgb(0,' + Math.floor(255-42.5*i) + ',' + Math.floor(255-42.5*j) + ')';
+							drawLine(hex[i].x, hex[i].y, hex[j].x, hex[j].y);
+							
+						}
+					}
+				};
+				this.drawTiledHex = drawTiledHex;
+				this.drawFlowerOfLife = drawFlowerOfLife;
+			},
+			canvas1 = new geometryMaker("canvas"),
+			canvas2 = new geometryMaker("canvas2");
+		
+        canvas1.drawTiledHex();
+		canvas2.drawFlowerOfLife();
+		
     </script>
 </body>
 
