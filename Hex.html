@@ -150,7 +150,7 @@
 					drawCircle(c1, c2, radius * 1.5);
 
 				},
-				drawTiledHex = function(c1, c2, radius, full) {
+				drawTiledHex = function(full) {
 					var c1 = canvas.width/2, c2 = canvas.height/2, radius = canvas.width/4,
 						myHex = drawHex(c1, c2, radius),
 						i, j,
@@ -185,7 +185,7 @@
 			canvas1 = new geometryMaker("canvas"),
 			canvas2 = new geometryMaker("canvas2");
 		
-        canvas1.drawTiledHex();
+        canvas1.drawTiledHex(1);
 		canvas2.drawFlowerOfLife();
 		
     </script>
