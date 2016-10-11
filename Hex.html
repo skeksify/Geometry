@@ -24,17 +24,40 @@
 		var geometryMaker = function (id) {	
 			var canvas = document.getElementById(id),
 				ctx = canvas.getContext("2d"),
+				hexCosRatio = Math.cos(Math.PI / 6), // 
+				hexSinRatio = Math.sin(Math.PI / 6), // 0.5!
+				octCosRatio = Math.cos(Math.PI / 8), //
+				octSinRatio = Math.sin(Math.PI / 8), // 
 				hash = function(num) { return ("" + num).substr(0, 6); },
-				cosRatio = Math.cos(Math.PI / 6),
-				sinRatio = Math.sin(Math.PI / 6), // 0.5!
-				vertices = {
+				hexVertices = {
 					midToTop: function(x, y, rad) { return { x: x, y: y - rad }; },
-					topToTopR: function(x, y, rad) { return { x: x + rad * cosRatio, y: y + rad * sinRatio }; },
+					topToTopR: function(x, y, rad) { return { x: x + rad * hexCosRatio, y: y + rad * hexSinRatio }; },
 					topRToBotR: function(x, y, rad) { return { x: x, y: y + rad }; },
-					botRToBot: function(x, y, rad) { return { x: x - rad * cosRatio, y: y + rad * sinRatio }; },
-					botToBotL: function(x, y, rad) { return { x: x - rad * cosRatio, y: y - rad * sinRatio }; },
+					botRToBot: function(x, y, rad) { return { x: x - rad * hexCosRatio, y: y + rad * hexSinRatio }; },
+					botToBotL: function(x, y, rad) { return { x: x - rad * hexCosRatio, y: y - rad * hexSinRatio }; },
 					botLToTopL: function(x, y, rad) { return { x: x, y: y - rad }; }
-					//,topLTTop: function (x, y, rad) { return { x: x + rad * cosRatio, y: y - rad * sinRatio }; }
+					//,topLTTop: function (x, y, rad) { return { x: x + rad * hexCosRatio, y: y - rad * hexSinRatio }; }
+				},
+				octVertices = {
+					midToTopLeft: function(x, y, rad) { return { x: x - rad * octSinRatio, y: y - rad * octCosRatio }; },
+					topLToTopR: function(x, y, rad) { return { x: x + rad * octSinRatio * 2, y: y }; },
+					topRToRTop: function(x, y, rad) { 
+						var mid = { x: x - rad * octSinRatio, y: y + rad * octCosRatio };
+						return { x: mid.x + rad * octCosRatio, y: mid.y - rad * octSinRatio }; 
+					},
+					rTopToRBot: function(x, y, rad) { return { x: x, y: y + rad * octSinRatio * 2 }; },
+					rBotToBotR: function(x, y, rad) { 
+						var mid = { x: x - rad * octCosRatio, y: y - rad * octSinRatio };
+						return { x: mid.x + rad * octSinRatio, y: mid.y + rad * octCosRatio }; 
+					},
+					botRToBotL: function(x, y, rad) { return { x: x - rad * octSinRatio * 2, y: y }; },
+					botLToLBot: function(x, y, rad) { 
+						var mid = { x: x + rad * octSinRatio, y: y - rad * octCosRatio };
+						return { x: mid.x - rad * octCosRatio, y: mid.y + rad * octSinRatio }; 
+					},
+					lBotToLTop: function(x, y, rad) { return { x: x, y: y - rad * octSinRatio * 2 }; },
+					//botLToTopL: function(x, y, rad) { return { x: x, y: y - rad }; }
+					//,topLTTop: function (x, y, rad) { return { x: x + rad * hexCosRatio, y: y - rad * hexSinRatio }; }
 				},
 				penCache = {
 					cache: {
@@ -72,13 +95,13 @@
 						phi2: Math.PI / 6 * (((index * 2) + 5) % 12)
 					}
 				},
-				makeHex = function(centerX, centerY, radius) {
+				makePolygon = function(instructions, centerX, centerY, radius) {
 					var result = [],
 						key,
 						currentPoint = { x: centerX, y: centerY };
 
-					for (key in vertices) {
-						currentPoint = vertices[key](currentPoint.x, currentPoint.y, radius);
+					for (key in instructions) {
+						currentPoint = instructions[key](currentPoint.x, currentPoint.y, radius);
 						result.push({
 							x: currentPoint.x,
 							y: currentPoint.y
@@ -86,22 +109,33 @@
 					}
 					return result;
 				},
+				makeHex = function(centerX, centerY, radius) {
+					return makePolygon(hexVertices, centerX, centerY, radius);
+				},
+				makeOct = function(centerX, centerY, radius) {
+					return makePolygon(octVertices, centerX, centerY, radius);
+				},			
+				drawPolygon = function(polygon) {
+					var i;
+
+					ctx.moveTo(polygon[0].x, polygon[0].y);
+					for (i = 1; i < polygon.length; i++) {
+						ctx.lineTo(polygon[i].x, polygon[i].y);
+					}
+					ctx.closePath();
+					ctx.stroke();
+					return polygon;
+				},
+				drawHex = function(centerX, centerY, radius) {
+					return drawPolygon(makeHex(centerX, centerY, radius));
+				},
+				drawOct = function (c1, c2, radius) {
+					return drawPolygon(makeOct(c1, c2, radius));			
+				},	
 				drawLine = function(x1, y1, x2, y2) {
 					ctx.moveTo(x1, y1);
 					ctx.lineTo(x2, y2);
 					ctx.stroke();
-				},
-				drawHex = function(centerX, centerY, radius) {
-					var aHex = makeHex(centerX, centerY, radius),
-						i;
-
-					ctx.moveTo(aHex[0].x, aHex[0].y);
-					for (i = 1; i < aHex.length; i++) {
-						ctx.lineTo(aHex[i].x, aHex[i].y);
-					}
-					ctx.closePath();
-					ctx.stroke();
-					return aHex;
 				},
 				drawCircle = function(centerX, centerY, radius) {
 					if (penCache.getPermission(centerX, centerY, radius, "circles")) {
@@ -126,10 +160,26 @@
 					if (withCircle) {
 						drawCircle(c1, c2, radius);
 					}
-					for (i = 0; i < 6; i++) {
+					for (i = 0; i < myHex.length; i++) {
 						drawTwoThirdsHexArc(myHex[i].x, myHex[i].y, radius, i);
 					}
 					return myHex;
+				},
+				drawFlowerOct = function(c1, c2, radius, withCircle) {
+					var c1 = canvas.width/2, c2 = canvas.height/2, radius = canvas.width/4,
+					myOct = (1 ? drawOct : makeOct)(c1, c2, radius),
+						i;
+
+					if (withCircle) {
+						drawCircle(c1, c2, radius);
+					}
+					for (i = 0; i < myOct.length; i++) {
+						//drawTwoThirdsHexArc(myHex[i].x, myHex[i].y, radius, i);
+						drawCircle(myOct[i].x, myOct[i].y, radius/(i+1), i);
+					}
+					
+					drawDiagonals(myOct);
+					return myOct;
 				},
 				drawFlowerOfLife = function() {
 					var c1 = canvas.width/2, c2 = canvas.height/2, radius = canvas.width/4,
@@ -138,11 +188,11 @@
 						midHex = drawFlowerHex(c1, c2, radius / 2, 0, 1),
 						midMidHex, midPoint;
 
-					for (i = 0; i < 6; i++) {
+					for (i = 0; i < myHex.length; i++) {
 						drawFlowerHex(myHex[i].x, myHex[i].y, radius / 2, 0, 1);
 
 						drawFlowerHex(midHex[i].x, midHex[i].y, radius / 2);
-						midPoint = getMidPoint(myHex[i].x, myHex[i].y, myHex[(i + 1) % 6].x, myHex[(i + 1) % 6].y);
+						midPoint = getMidPoint(myHex[i].x, myHex[i].y, myHex[(i + 1) % myHex.length].x, myHex[(i + 1) % myHex.length].y);
 						drawFlowerHex(midPoint.x, midPoint.y, radius / 2, 0, 1);
 					}
 
@@ -157,11 +207,11 @@
 						midHex = drawFlowerHex(c1, c2, radius / 2, full),
 						midMidHex, midPoint, x1, y1, x2, y2;
 
-					for (i = 0; i < 6; i++) {
+					for (i = 0; i < myHex.length; i++) {
 						x1 = myHex[i].x;
 						y1 = myHex[i].y;
 						midMidHex = drawFlowerHex(x1, y1, radius / 2, full);
-						for (j = 0; j < 6; j++) {
+						for (j = 0; j < midMidHex.length; j++) {
 							drawFlowerHex(midMidHex[j].x, midMidHex[j].y, radius / 2, full);
 						}
 					}
@@ -171,8 +221,8 @@
 				drawDiagonals = function(hex) {
 					var i, j;
 					
-					for (i = 0; i < 6; i++) {
-						for (j = 0; j < 6; j++) {
+					for (i = 0; i < hex.length; i++) {
+						for (j = 0; j < hex.length; j++) {
 							//ctx.strokeStyle = 'rgb(0,' + Math.floor(255-42.5*i) + ',' + Math.floor(255-42.5*j) + ')';
 							drawLine(hex[i].x, hex[i].y, hex[j].x, hex[j].y);
 							
@@ -181,12 +231,13 @@
 				};
 				this.drawTiledHex = drawTiledHex;
 				this.drawFlowerOfLife = drawFlowerOfLife;
+				this.drawFlowerOct = drawFlowerOct;
 			},
 			canvas1 = new geometryMaker("canvas"),
 			canvas2 = new geometryMaker("canvas2");
 		
-        canvas1.drawTiledHex(1);
-		canvas2.drawFlowerOfLife();
+        //canvas1.drawTiledHex(1);
+		canvas2.drawFlowerOct();
 		
     </script>
 </body>
