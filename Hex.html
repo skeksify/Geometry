@@ -175,7 +175,7 @@
 					}
 					for (i = 0; i < myOct.length; i++) {
 						//drawTwoThirdsHexArc(myHex[i].x, myHex[i].y, radius, i);
-						drawCircle(myOct[i].x, myOct[i].y, radius/(i+1), i);
+						//drawFlowerHex(myOct[i].x, myOct[i].y, radius/2, 1);
 					}
 					
 					drawDiagonals(myOct);
@@ -236,7 +236,7 @@
 			canvas1 = new geometryMaker("canvas"),
 			canvas2 = new geometryMaker("canvas2");
 		
-        //canvas1.drawTiledHex(1);
+        canvas1.drawTiledHex(1);
 		canvas2.drawFlowerOct();
 		
     </script>
