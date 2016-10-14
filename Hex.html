@@ -18,7 +18,7 @@
 <body>
 
     <canvas id="canvas" width="600" height="600" class="playable-canvas"></canvas>
-    <canvas id="canvas2" width="600" height="600" class="playable-canvas"></canvas>
+    <!--<canvas id="canvas2" width="600" height="600" class="playable-canvas"></canvas>-->
 
     <script>
 		var geometryMaker = function (id) {	
@@ -27,7 +27,22 @@
 				hexCosRatio = Math.cos(Math.PI / 6), // 
 				hexSinRatio = Math.sin(Math.PI / 6), // 0.5!
 				octCosRatio = Math.cos(Math.PI / 8), //
-				octSinRatio = Math.sin(Math.PI / 8), // 
+				octSinRatio = Math.sin(Math.PI / 8), //
+				diagonals = {
+					inner: function (i, j, tot) {
+						var end = tot - 1,
+								round = (!i || !j) && i + j === end;
+						return !round && Math.abs(i - j) > 1;
+					},
+					everyTwo: function (i, j, tot) {;
+						return (Math.abs(i - j + tot) % tot) === 2;
+					},
+					everyN: function (N) {
+						return function (i, j, tot) {;
+							return (Math.abs(i - j + tot) % tot) === N;
+						}
+					}
+				},
 				hash = function(num) { return ("" + num).substr(0, 6); },
 				hexVertices = {
 					midToTop: function(x, y, rad) { return { x: x, y: y - rad }; },
@@ -126,8 +141,34 @@
 					ctx.stroke();
 					return polygon;
 				},
+				makeGenericPolygon = function(c1, c2, radius, sides) {
+					var i, result = [];
+
+					result.push({ x: c1 + radius * Math.cos(0), y: c2 + radius * Math.sin(0) });
+
+					for (var i = 1; i < sides;i += 1) {
+						result.push({
+							x: c1 + radius*Math.cos(2*Math.PI * i/sides),
+							y: c2 + radius*Math.sin(2*Math.PI * i/sides)
+						});
+					}
+
+					return result;
+				},
 				drawHex = function(centerX, centerY, radius) {
 					return drawPolygon(makeHex(centerX, centerY, radius));
+				},
+				drawDiagonals = function(hex, rule) {
+					var i, j;
+
+					for (i = 0; i < hex.length; i++) {
+						for (j = 0; j < hex.length; j++) {
+							if (!rule || rule(i, j, hex.length)) {
+								drawLine(hex[i].x, hex[i].y, hex[j].x, hex[j].y);
+							}
+						}
+					}
+
 				},
 				drawOct = function (c1, c2, radius) {
 					return drawPolygon(makeOct(c1, c2, radius));			
@@ -183,29 +224,41 @@
 				},
 				drawFlowerOfLife = function() {
 					var c1 = canvas.width/2, c2 = canvas.height/2, radius = canvas.width/4,
-						myHex = makeHex(c1, c2, radius),
-						i, j,
-						midHex = drawFlowerHex(c1, c2, radius / 2, 0, 1),
-						midMidHex, midPoint;
+						myHex = makeHex(c1, c2, radius), i, midPoint,
+						midHex = drawFlowerHex(c1, c2, radius / 2, 0, 1);
 
 					for (i = 0; i < myHex.length; i++) {
 						drawFlowerHex(myHex[i].x, myHex[i].y, radius / 2, 0, 1);
 
 						drawFlowerHex(midHex[i].x, midHex[i].y, radius / 2);
-						midPoint = getMidPoint(myHex[i].x, myHex[i].y, myHex[(i + 1) % myHex.length].x, myHex[(i + 1) % myHex.length].y);
+						midPoint = getMidPoint(
+								myHex[i].x,
+								myHex[i].y,
+								myHex[(i + 1) % myHex.length].x,
+								myHex[(i + 1) % myHex.length].y);
 						drawFlowerHex(midPoint.x, midPoint.y, radius / 2, 0, 1);
 					}
 
 					//drawCircle(c1, c2, radius);
 					drawCircle(c1, c2, radius * 1.5);
+				},
+				drawMetatron = function() {
+					var c1 = canvas.width/2, c2 = canvas.height/2, radius = canvas.width/3,
+						myHex = drawHex(c1, c2, radius),
+						i, midHex = drawHex(c1, c2, radius / 2);
 
+					for (i = 0;i < myHex.length; i++) {
+						drawCircle(myHex[i].x, myHex[i].y, radius/4);
+						drawCircle(midHex[i].x, midHex[i].y, radius/4);
+					}
+
+					drawCircle(c1, c2, radius/4);
+					drawDiagonals(myHex.concat(midHex));
 				},
 				drawTiledHex = function(full) {
 					var c1 = canvas.width/2, c2 = canvas.height/2, radius = canvas.width/4,
 						myHex = drawHex(c1, c2, radius),
-						i, j,
-						midHex = drawFlowerHex(c1, c2, radius / 2, full),
-						midMidHex, midPoint, x1, y1, x2, y2;
+						i, j, midMidHex, x1, y1;
 
 					for (i = 0; i < myHex.length; i++) {
 						x1 = myHex[i].x;
@@ -216,28 +269,38 @@
 						}
 					}
 					drawDiagonals(myHex);
+					drawFlowerHex(c1, c2, radius / 2, full);
 					drawDiagonals(drawHex(c1, c2, radius * 2))
 				},
-				drawDiagonals = function(hex) {
-					var i, j;
-					
-					for (i = 0; i < hex.length; i++) {
-						for (j = 0; j < hex.length; j++) {
-							//ctx.strokeStyle = 'rgb(0,' + Math.floor(255-42.5*i) + ',' + Math.floor(255-42.5*j) + ')';
-							drawLine(hex[i].x, hex[i].y, hex[j].x, hex[j].y);
-							
-						}
-					}
+				doGenericPolygon = function(hex) {
+					var genPoly;
+					drawLine(0, canvas.height/2, 20, canvas.height/2);
+					drawLine(canvas.height - 20, canvas.height/2, canvas.height, canvas.height/2);
+					drawLine(canvas.width/2, 0, canvas.width/2, 20);
+					drawLine(canvas.width/2, canvas.height - 20, canvas.width/2, canvas.height);
+
+					genPoly = makeGenericPolygon(
+						canvas.width/2,
+						canvas.height/2,
+						canvas.width/4,
+						9
+					);
+
+					//drawPolygon(genPoly);
+
+					drawDiagonals(genPoly, diagonals.everyN(2));
 				};
 				this.drawTiledHex = drawTiledHex;
+				this.drawMetatron = drawMetatron;
 				this.drawFlowerOfLife = drawFlowerOfLife;
-				this.drawFlowerOct = drawFlowerOct;
+				this.drawCrossedOct = drawFlowerOct;
+				this.doGenericPolygon = doGenericPolygon;
 			},
-			canvas1 = new geometryMaker("canvas"),
-			canvas2 = new geometryMaker("canvas2");
-		
-        canvas1.drawTiledHex(1);
-		canvas2.drawFlowerOct();
+			canvas1 = new geometryMaker("canvas");
+
+        //canvas1.drawMetatron();
+        canvas1.doGenericPolygon(6);
+		//canvas2.drawCrossedOct();
 		
     </script>
 </body>
