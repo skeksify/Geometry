@@ -17,8 +17,10 @@
 
 <body>
 
-    <canvas id="canvas" width="600" height="600" class="playable-canvas"></canvas>
-    <!--<canvas id="canvas2" width="600" height="600" class="playable-canvas"></canvas>-->
+    <canvas id="canvas" width="1600" height="1000" class="playable-canvas"></canvas>
+	<canvas id="canvas2" width="600" height="600" class="playable-canvas"></canvas>
+	<canvas id="canvas3" width="600" height="600" class="playable-canvas"></canvas>
+	<canvas id="canvas4" width="600" height="600" class="playable-canvas"></canvas>
 
     <script>
 		var geometryMaker = function (id) {	
@@ -97,12 +99,39 @@
 						return result;
 					}
 				},
+				boxes = [],
+				addBox = function (title) {
+					var boxMargin = 20,
+						boxWidth = 240,
+						boxHeight = 300,
+						boxesPerRow = Math.floor(canvas.width / (boxWidth + boxMargin)),
+						boxOffsetX = (boxes.length % boxesPerRow) * (boxMargin + boxWidth) + boxMargin,
+						boxOffsetY = (boxMargin + boxHeight) * Math.floor(boxes.length / boxesPerRow) + boxMargin,
+						boxMinPoint = { x: boxOffsetX + boxWidth/2, y: boxOffsetY + boxHeight/2 };
+
+					ctx.rect(boxOffsetX, boxOffsetY, boxWidth, boxHeight);
+					ctx.stroke();
+					if (title) {
+						ctx.textAlign = "center";
+						ctx.font = "32px serif";
+						ctx.strokeText(title, boxMinPoint.x, boxOffsetY + 30);
+					}
+					boxes.push(boxMinPoint);
+
+					return boxMinPoint;
+				},
 				getMidPoint = function(x1, y1, x2, y2) {
 					var result = {
 						x: (x1 + x2) / 2,
 						y: (y1 + y2) / 2
 					};
 					return result;
+				},
+				markMiddleSpot = function() {
+					drawLine(0, canvas.height/2, 20, canvas.height/2);
+					drawLine(canvas.height - 20, canvas.height/2, canvas.height, canvas.height/2);
+					drawLine(canvas.width/2, 0, canvas.width/2, 20);
+					drawLine(canvas.width/2, canvas.height - 20, canvas.width/2, canvas.height);
 				},
 				getArch = function(index) {
 					return {
@@ -272,36 +301,64 @@
 					drawFlowerHex(c1, c2, radius / 2, full);
 					drawDiagonals(drawHex(c1, c2, radius * 2))
 				},
-				doGenericPolygon = function(hex) {
-					var genPoly;
-					drawLine(0, canvas.height/2, 20, canvas.height/2);
-					drawLine(canvas.height - 20, canvas.height/2, canvas.height, canvas.height/2);
-					drawLine(canvas.width/2, 0, canvas.width/2, 20);
-					drawLine(canvas.width/2, canvas.height - 20, canvas.width/2, canvas.height);
+				layouts = {
+					polygons: function() {
+						var key, makeShapeFunc = function (sides, diagonality) {
+								return function (title) {
+									var box = addBox(title),
+										polygon = makeGenericPolygon(box.x, box.y, 100, sides);
+									drawPolygon(polygon);
+									drawDiagonals(polygon, diagonals.everyN(diagonality));
+								}
+							},
+							shapes = {
+								"Rect": makeShapeFunc(4,2),
+								"Pentagon": makeShapeFunc(5,2),
+								"Hexagon": makeShapeFunc(6,2),
+								"Heptagon": makeShapeFunc(7,2),
+								"Octagon": makeShapeFunc(8,2),
+								"Nonagon": makeShapeFunc(9,2),
+								"Rect 3": makeShapeFunc(4,3),
+								"Pentagon 3": makeShapeFunc(5,3),
+								"Hexagon 3": makeShapeFunc(6,3),
+								"Heptagon 3": makeShapeFunc(7,3),
+								"Octagon 3": makeShapeFunc(8,3),
+								"Nonagon 3": makeShapeFunc(9,3),
+								"Rect 4": makeShapeFunc(4,4),
+								"Pentagon 4": makeShapeFunc(5,4),
+								"Hexagon 4": makeShapeFunc(6,4),
+								"Heptagon 4": makeShapeFunc(7,4),
+								"Octagon 4": makeShapeFunc(8,4),
+								"Nonagon 4": makeShapeFunc(9,4),
+							}
 
-					genPoly = makeGenericPolygon(
-						canvas.width/2,
-						canvas.height/2,
-						canvas.width/4,
-						9
-					);
+						for (key in shapes)
+							shapes[key](key);
 
-					//drawPolygon(genPoly);
-
-					drawDiagonals(genPoly, diagonals.everyN(2));
+					},
+					patterns: {
+						metatron: drawMetatron,
+						flowerOfLife: drawFlowerOfLife,
+						tiledHex: drawTiledHex
+					}
 				};
 				this.drawTiledHex = drawTiledHex;
 				this.drawMetatron = drawMetatron;
 				this.drawFlowerOfLife = drawFlowerOfLife;
 				this.drawCrossedOct = drawFlowerOct;
-				this.doGenericPolygon = doGenericPolygon;
+				this.layouts = layouts;
 			},
-			canvas1 = new geometryMaker("canvas");
+			canvas1 = new geometryMaker("canvas"),
+			canvas2 = new geometryMaker("canvas2"),
+			canvas3 = new geometryMaker("canvas3"),
+			canvas4 = new geometryMaker("canvas4");
 
         //canvas1.drawMetatron();
-        canvas1.doGenericPolygon(6);
-		//canvas2.drawCrossedOct();
-		
+        canvas1.layouts.polygons();
+		canvas2.layouts.patterns.metatron();
+		canvas3.layouts.patterns.flowerOfLife();
+		canvas4.layouts.patterns.tiledHex();
+
     </script>
 </body>
 
