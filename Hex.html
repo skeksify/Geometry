@@ -17,19 +17,24 @@
 
 <body>
 
-    <canvas id="canvas" width="1600" height="1000" class="playable-canvas"></canvas>
+	<canvas id="canvas0" width="600" height="600" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<canvas id="canvas00" width="600" height="600" class="playable-canvas"></canvas><br>
+    <canvas id="canvas" width="1600" height="1300" class="playable-canvas"></canvas>
 	<canvas id="canvas2" width="600" height="600" class="playable-canvas"></canvas>
 	<canvas id="canvas3" width="600" height="600" class="playable-canvas"></canvas>
 	<canvas id="canvas4" width="600" height="600" class="playable-canvas"></canvas>
 
     <script>
-		var geometryMaker = function (id) {	
-			var canvas = document.getElementById(id),
+		var pi = Math.PI,
+			phi = 2/(1 + Math.sqrt(5)),
+			phiComp = 1-phi,
+			geometryMaker = function (id) {
+				var canvas = document.getElementById(id),
 				ctx = canvas.getContext("2d"),
-				hexCosRatio = Math.cos(Math.PI / 6), // 
-				hexSinRatio = Math.sin(Math.PI / 6), // 0.5!
-				octCosRatio = Math.cos(Math.PI / 8), //
-				octSinRatio = Math.sin(Math.PI / 8), //
+				hexCosRatio = Math.cos(pi / 6), //
+				hexSinRatio = Math.sin(pi / 6), // 0.5!
+				octCosRatio = Math.cos(pi / 8), //
+				octSinRatio = Math.sin(pi / 8), //
 				diagonals = {
 					inner: function (i, j, tot) {
 						var end = tot - 1,
@@ -120,6 +125,19 @@
 
 					return boxMinPoint;
 				},
+				dotSet = function (set, byRad, partial) {
+					var i, setArr = [].concat(set);
+
+					for(i=0; i<setArr.length; i++) {
+						drawCircle(
+								setArr[i].x,
+								setArr[i].y,
+								byRad ? setArr[i].r : 3,
+								partial ? setArr[i].phi1 : null,
+								partial ? setArr[i].phi2 : null
+						);
+					}
+				},
 				getMidPoint = function(x1, y1, x2, y2) {
 					var result = {
 						x: (x1 + x2) / 2,
@@ -135,8 +153,8 @@
 				},
 				getArch = function(index) {
 					return {
-						phi1: Math.PI / 6 * ((index * 2) + 1),
-						phi2: Math.PI / 6 * (((index * 2) + 5) % 12)
+						phi1: pi / 6 * ((index * 2) + 1),
+						phi2: pi / 6 * (((index * 2) + 5) % 12)
 					}
 				},
 				makePolygon = function(instructions, centerX, centerY, radius) {
@@ -166,7 +184,7 @@
 					for (i = 1; i < polygon.length; i++) {
 						ctx.lineTo(polygon[i].x, polygon[i].y);
 					}
-					ctx.closePath();
+					//ctx.closePath();
 					ctx.stroke();
 					return polygon;
 				},
@@ -177,8 +195,8 @@
 
 					for (var i = 1; i < sides;i += 1) {
 						result.push({
-							x: c1 + radius*Math.cos(2*Math.PI * i/sides),
-							y: c2 + radius*Math.sin(2*Math.PI * i/sides)
+							x: c1 + radius*Math.cos(2*pi * i/sides),
+							y: c2 + radius*Math.sin(2*pi * i/sides)
 						});
 					}
 
@@ -207,10 +225,10 @@
 					ctx.lineTo(x2, y2);
 					ctx.stroke();
 				},
-				drawCircle = function(centerX, centerY, radius) {
+				drawCircle = function(centerX, centerY, radius, phi1, phi2) {
 					if (penCache.getPermission(centerX, centerY, radius, "circles")) {
 						ctx.beginPath();
-						ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+						ctx.arc(centerX, centerY, radius, phi1 || 0, phi2 || 2*pi);
 						ctx.stroke();
 					}
 				},
@@ -284,6 +302,39 @@
 					drawCircle(c1, c2, radius/4);
 					drawDiagonals(myHex.concat(midHex));
 				},
+				drawSpiral = function(customPhi, customPhiComp) {
+					var i, newRad, c1 = canvas.width/2, c2 = canvas.height/2-100, radius = 300,
+						phi1 = pi/2, phi2 = pi,
+						result = [{
+							x: c1,
+							y: c2,
+							r: radius,
+							phi1: phi1,
+							phi2: phi2
+						}], rotation = [0, 1, 0, -1];
+
+					for (i=0; i<456; i++) {
+						newRad = radius*(customPhiComp || phiComp);
+
+						c1 = c1 + newRad*rotation[i%4];
+						c2 = c2 + newRad*rotation[(i+1)%4];
+						phi1 = (phi1 - (pi/2) + (2*pi)) % (2*pi);
+						phi2 = (phi2 - (pi/2) + (2*pi)) % (2*pi);
+
+						result.push({
+							x: c1,
+							y: c2,
+							r: radius*(customPhi || phi),
+							phi1: phi1,
+							phi2: phi2
+						});
+
+						radius *= customPhi || phi;
+					}
+
+					//dotSet(result);
+					dotSet(result, true, true);
+				},
 				drawTiledHex = function(full) {
 					var c1 = canvas.width/2, c2 = canvas.height/2, radius = canvas.width/4,
 						myHex = drawHex(c1, c2, radius),
@@ -307,7 +358,8 @@
 								return function (title) {
 									var box = addBox(title),
 										polygon = makeGenericPolygon(box.x, box.y, 100, sides);
-									drawPolygon(polygon);
+									//drawPolygon(polygon);
+									drawCircle(box.x, box.y, 100)
 									drawDiagonals(polygon, diagonals.everyN(diagonality));
 								}
 							},
@@ -330,6 +382,12 @@
 								"Heptagon 4": makeShapeFunc(7,4),
 								"Octagon 4": makeShapeFunc(8,4),
 								"Nonagon 4": makeShapeFunc(9,4),
+								"Rect 5": makeShapeFunc(4,5),
+								"Pentagon 5": makeShapeFunc(5,5),
+								"Hexagon 5": makeShapeFunc(6,5),
+								"Heptagon 5": makeShapeFunc(7,5),
+								"Octagon 5": makeShapeFunc(8,5),
+								"Nonagon 5": makeShapeFunc(9,5),
 							}
 
 						for (key in shapes)
@@ -339,7 +397,8 @@
 					patterns: {
 						metatron: drawMetatron,
 						flowerOfLife: drawFlowerOfLife,
-						tiledHex: drawTiledHex
+						tiledHex: drawTiledHex,
+						spiral: drawSpiral
 					}
 				};
 				this.drawTiledHex = drawTiledHex;
@@ -348,12 +407,16 @@
 				this.drawCrossedOct = drawFlowerOct;
 				this.layouts = layouts;
 			},
+			canvas0 = new geometryMaker("canvas0"),
+			canvas00 = new geometryMaker("canvas00"),
 			canvas1 = new geometryMaker("canvas"),
 			canvas2 = new geometryMaker("canvas2"),
 			canvas3 = new geometryMaker("canvas3"),
 			canvas4 = new geometryMaker("canvas4");
 
         //canvas1.drawMetatron();
+        canvas0.layouts.patterns.spiral();
+        canvas00.layouts.patterns.spiral(0.99, 0.01);
         canvas1.layouts.polygons();
 		canvas2.layouts.patterns.metatron();
 		canvas3.layouts.patterns.flowerOfLife();
