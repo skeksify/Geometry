@@ -17,7 +17,18 @@
 
 <body>
 
-	<canvas id="canvas0" width="600" height="600" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<canvas id="canvas0" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<canvas id="canvas01" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<canvas id="canvas02" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<canvas id="canvas03" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<canvas id="canvas04" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<canvas id="canvas05" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+	<canvas id="canvas021" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<canvas id="canvas022" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<canvas id="canvas023" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<canvas id="canvas024" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<canvas id="canvas025" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 	<canvas id="canvas00" width="600" height="600" class="playable-canvas"></canvas><br>
     <canvas id="canvas" width="1600" height="1300" class="playable-canvas"></canvas>
 	<canvas id="canvas2" width="600" height="600" class="playable-canvas"></canvas>
@@ -31,6 +42,7 @@
 			geometryMaker = function (id) {
 				var canvas = document.getElementById(id),
 				ctx = canvas.getContext("2d"),
+				textifyCoords = false,
 				hexCosRatio = Math.cos(pi / 6), //
 				hexSinRatio = Math.sin(pi / 6), // 0.5!
 				octCosRatio = Math.cos(pi / 8), //
@@ -105,6 +117,15 @@
 					}
 				},
 				boxes = [],
+				positivePiVal = function (angle) {
+					return angle >= 0 ? angle : angle+2*pi;
+				},
+				softRound = function (num) {
+					return Math.abs(num)<0.01 ? 0 : num;
+				},
+				strokeStyle = function (style) {
+					ctx.strokeStyle = style;
+				},
 				addBox = function (title) {
 					var boxMargin = 20,
 						boxWidth = 240,
@@ -125,6 +146,12 @@
 
 					return boxMinPoint;
 				},
+				drawCustomSpiral = function (customRatio) {
+					drawSpiral(makeSpiral(customRatio));
+				},
+				drawSpiral = function (set) {
+					dotSet(set, true, true);
+				},
 				dotSet = function (set, byRad, partial) {
 					var i, setArr = [].concat(set);
 
@@ -132,10 +159,15 @@
 						drawCircle(
 								setArr[i].x,
 								setArr[i].y,
-								byRad ? setArr[i].r : 3,
+								byRad ? setArr[i].circleR : 3,
 								partial ? setArr[i].phi1 : null,
 								partial ? setArr[i].phi2 : null
 						);
+						if (textifyCoords) {
+							ctx.textAlign = "center";
+							ctx.font = "13px arial";
+							ctx.strokeText("(" + parseInt(setArr[i].x) + ", " + parseInt(setArr[i].y) + ")", setArr[i].x, setArr[i].y - 20);
+						}
 					}
 				},
 				getMidPoint = function(x1, y1, x2, y2) {
@@ -228,7 +260,7 @@
 				drawCircle = function(centerX, centerY, radius, phi1, phi2) {
 					if (penCache.getPermission(centerX, centerY, radius, "circles")) {
 						ctx.beginPath();
-						ctx.arc(centerX, centerY, radius, phi1 || 0, phi2 || 2*pi);
+						ctx.arc(centerX, centerY, radius, positivePiVal(phi1 || 0), positivePiVal(phi2 || 2*pi));
 						ctx.stroke();
 					}
 				},
@@ -302,19 +334,42 @@
 					drawCircle(c1, c2, radius/4);
 					drawDiagonals(myHex.concat(midHex));
 				},
-				drawSpiral = function(customPhi, customPhiComp) {
-					var i, newRad, c1 = canvas.width/2, c2 = canvas.height/2-100, radius = 300,
+				drawSpirals = function(sectionNumber, customRatio) {
+					var i, spiral = makeSpiral(customRatio),
+						midPoint = spiral[spiral.length-1], newSet,
+						thetaOffset = 2*pi / sectionNumber;
+
+					drawSpiral(spiral);
+
+					for (i = 1; i < sectionNumber; i++) {
+						newSet = spiral.map(function (point) {
+							var pointPolar = convertToPolar(point, midPoint);
+
+							pointPolar.theta -= softRound(thetaOffset*i);
+							pointPolar.phi1 -= softRound(thetaOffset*i);
+							pointPolar.phi2 -= softRound(thetaOffset*i);
+
+							return polarToCartesian(pointPolar, midPoint);
+						})
+						drawSpiral(newSet);
+					}
+
+					markMiddleSpot();
+				},
+				makeSpiral = function(customPhi) {
+					var i, newRad, c1 = canvas.width/2-100, c2 = canvas.height/2-140 - (customPhi ? 250 : 0), radius = 500,
 						phi1 = pi/2, phi2 = pi,
 						result = [{
 							x: c1,
 							y: c2,
-							r: radius,
+							circleR: radius,
 							phi1: phi1,
 							phi2: phi2
-						}], rotation = [0, 1, 0, -1];
+						}], rotation = [0, 1, 0, -1],
+						myPhi = customPhi || phi;
 
-					for (i=0; i<456; i++) {
-						newRad = radius*(customPhiComp || phiComp);
+					for (i=0; i<63; i++) {
+						newRad = radius*(1 - myPhi);
 
 						c1 = c1 + newRad*rotation[i%4];
 						c2 = c2 + newRad*rotation[(i+1)%4];
@@ -324,16 +379,16 @@
 						result.push({
 							x: c1,
 							y: c2,
-							r: radius*(customPhi || phi),
+							circleR: radius*myPhi,
 							phi1: phi1,
 							phi2: phi2
 						});
 
-						radius *= customPhi || phi;
+						radius *= myPhi;
 					}
 
 					//dotSet(result);
-					dotSet(result, true, true);
+					return result;
 				},
 				drawTiledHex = function(full) {
 					var c1 = canvas.width/2, c2 = canvas.height/2, radius = canvas.width/4,
@@ -351,6 +406,40 @@
 					drawDiagonals(myHex);
 					drawFlowerHex(c1, c2, radius / 2, full);
 					drawDiagonals(drawHex(c1, c2, radius * 2))
+				},
+				convertToPolar = function (point, relativeTo) {
+					var toDeg = 180/pi,
+						xDif = point.x - relativeTo.x,
+						yDif = point.y - relativeTo.y,
+						xNeg = xDif<0, yNeg = yDif<0,
+						r = Math.sqrt(Math.pow(xDif, 2) + Math.pow(yDif, 2)),
+						theta = xNeg ? Math.asin(yDif/r) : Math.acos(xDif/r),
+						fullTheta = xNeg ? pi - theta : yNeg ? 2*pi - theta : theta;
+
+//					drawCircle(relativeTo.x, relativeTo.y, Math.abs(r), fullTheta);
+//					dotSet([point, relativeTo, {}]);
+//					drawLine(point.x, point.y, relativeTo.x, relativeTo.y)
+
+					return {
+						r: r,
+						theta: fullTheta || 0,
+						circleR: point.circleR,
+						phi1: point.phi1,
+						phi2: point.phi2
+					}
+//					console.log(xDif, yDif);
+//					//console.log(negX, yDif/r*negX, theta, fullTheta);
+//					console.log(parseInt(theta*toDeg), parseInt(fullTheta*toDeg), (fThet % pi)*toDeg);
+				},
+				polarToCartesian = function (point, relativeTo) {
+					var result = {
+						x: relativeTo.x + point.r*Math.cos(point.theta),
+						y: relativeTo.y + point.r*Math.sin(point.theta),
+						circleR: point.circleR,
+						phi1: point.phi1,
+						phi2: point.phi2
+					}
+					return result;
 				},
 				layouts = {
 					polygons: function() {
@@ -398,7 +487,8 @@
 						metatron: drawMetatron,
 						flowerOfLife: drawFlowerOfLife,
 						tiledHex: drawTiledHex,
-						spiral: drawSpiral
+						spiral: drawCustomSpiral,
+						spirals: drawSpirals,
 					}
 				};
 				this.drawTiledHex = drawTiledHex;
@@ -406,8 +496,19 @@
 				this.drawFlowerOfLife = drawFlowerOfLife;
 				this.drawCrossedOct = drawFlowerOct;
 				this.layouts = layouts;
+				ctx.strokeStyle = "#FFF";
 			},
 			canvas0 = new geometryMaker("canvas0"),
+			canvas01 = new geometryMaker("canvas01"),
+			canvas02 = new geometryMaker("canvas02"),
+			canvas03 = new geometryMaker("canvas03"),
+			canvas04 = new geometryMaker("canvas04"),
+			canvas05 = new geometryMaker("canvas05"),
+			canvas021 = new geometryMaker("canvas021"),
+			canvas022 = new geometryMaker("canvas022"),
+			canvas023 = new geometryMaker("canvas023"),
+			canvas024 = new geometryMaker("canvas024"),
+			canvas025 = new geometryMaker("canvas025"),
 			canvas00 = new geometryMaker("canvas00"),
 			canvas1 = new geometryMaker("canvas"),
 			canvas2 = new geometryMaker("canvas2"),
@@ -415,8 +516,18 @@
 			canvas4 = new geometryMaker("canvas4");
 
         //canvas1.drawMetatron();
-        canvas0.layouts.patterns.spiral();
-        canvas00.layouts.patterns.spiral(0.99, 0.01);
+        canvas0.layouts.patterns.spirals(1);
+        canvas01.layouts.patterns.spirals(2);
+        canvas02.layouts.patterns.spirals(3);
+        canvas03.layouts.patterns.spirals(4);
+        canvas04.layouts.patterns.spirals(5);
+        canvas05.layouts.patterns.spirals(15);
+		canvas021.layouts.patterns.spirals(2, 0.2);
+		canvas022.layouts.patterns.spirals(3, 0.2);
+		canvas023.layouts.patterns.spirals(4, 0.2);
+		canvas024.layouts.patterns.spirals(5, 0.2);
+		canvas025.layouts.patterns.spirals(15, 0.2);
+        canvas00.layouts.patterns.spiral(0.89);
         canvas1.layouts.polygons();
 		canvas2.layouts.patterns.metatron();
 		canvas3.layouts.patterns.flowerOfLife();
