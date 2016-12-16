@@ -31,6 +31,7 @@
 	<canvas id="canvas025" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 	<canvas id="canvas00" width="600" height="600" class="playable-canvas"></canvas><br>
     <canvas id="canvas" width="1600" height="1300" class="playable-canvas"></canvas>
+    <canvas id="canvas1" width="1600" height="1300" class="playable-canvas"></canvas>
 	<canvas id="canvas2" width="600" height="600" class="playable-canvas"></canvas>
 	<canvas id="canvas3" width="600" height="600" class="playable-canvas"></canvas>
 	<canvas id="canvas4" width="600" height="600" class="playable-canvas"></canvas>
@@ -216,7 +217,7 @@
 					for (i = 1; i < polygon.length; i++) {
 						ctx.lineTo(polygon[i].x, polygon[i].y);
 					}
-					//ctx.closePath();
+					ctx.closePath();
 					ctx.stroke();
 					return polygon;
 				},
@@ -357,7 +358,7 @@
 					markMiddleSpot();
 				},
 				makeSpiral = function(customPhi) {
-					var i, newRad, c1 = canvas.width/2-100, c2 = canvas.height/2-140 - (customPhi ? 250 : 0), radius = 500,
+					var i, newRad, c1 = canvas.width/2-100, c2 = canvas.height/2-140 - (customPhi ? (customPhi<phi ? 250 : 0) : 0), radius = 500,
 						phi1 = pi/2, phi2 = pi,
 						result = [{
 							x: c1,
@@ -442,13 +443,17 @@
 					return result;
 				},
 				layouts = {
-					polygons: function() {
+					polygons: function(notRound) {
 						var key, makeShapeFunc = function (sides, diagonality) {
 								return function (title) {
 									var box = addBox(title),
 										polygon = makeGenericPolygon(box.x, box.y, 100, sides);
-									//drawPolygon(polygon);
-									drawCircle(box.x, box.y, 100)
+
+									if (notRound) {
+										drawPolygon(polygon);
+									} else {
+										drawCircle(box.x, box.y, 100)
+									}
 									drawDiagonals(polygon, diagonals.everyN(diagonality));
 								}
 							},
@@ -511,6 +516,7 @@
 			canvas025 = new geometryMaker("canvas025"),
 			canvas00 = new geometryMaker("canvas00"),
 			canvas1 = new geometryMaker("canvas"),
+			canvas11 = new geometryMaker("canvas1"),
 			canvas2 = new geometryMaker("canvas2"),
 			canvas3 = new geometryMaker("canvas3"),
 			canvas4 = new geometryMaker("canvas4");
@@ -529,6 +535,7 @@
 		canvas025.layouts.patterns.spirals(15, 0.2);
         canvas00.layouts.patterns.spiral(0.89);
         canvas1.layouts.polygons();
+        canvas11.layouts.polygons(true);
 		canvas2.layouts.patterns.metatron();
 		canvas3.layouts.patterns.flowerOfLife();
 		canvas4.layouts.patterns.tiledHex();
