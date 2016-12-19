@@ -1,8 +1,17 @@
 <html>
 
 <head>
+	<script src="jquery-3.1.1.min.js"></script>
     <style>
-        body {
+		ul { list-style-type: none; }
+        label { cursor: pointer; }
+		input[type=radio] { vertical-align: text-bottom; }
+		input[type=checkbox] { vertical-align: sub; }
+		label { line-height: 24px; }
+		body {
+			color: #EEE;
+			font-size: 13px;
+			font-family: Verdana;
             background: #333;
             text-align: center;
             margin: 40px auto 0;
@@ -12,31 +21,124 @@
             border: 1px solid black;
             text-align: center;
         }
+
+		.ui-wrapper {
+			width: 500px;
+			margin: 40px auto;
+		}
+
+		.ui-controls-wrapper {
+			text-align: left;
+		}
+
+		.ui-controls-wrapper>div, .step2>div {
+			margin: 10px 0;
+		}
+
+		.number-input {
+			text-align: center;
+			width: 80px;
+		}
+
+		.coords-wrapper, .tools-wrapper {
+			text-align: center;
+		}
+
+		.coords-wrapper>div, .tools-wrapper>div {
+			padding: 10px 10px;
+		}
+
+		.tools-oneRow>* {
+			margin: 0 20px;
+		}
+
+		.hidden {
+			display: none;
+		}
+
+		.bad {
+			box-shadow: 0px 0px 7px 3px #e00f0f;
+		}
+
     </style>
 </head>
-
 <body>
+	<div class="ui-wrapper">
+		<div class="ui-title"><h3>Control Panel</h3></div>
+		<div class="ui-controls-wrapper" id="ui-controls-wrapper">
+			<div class="step-1">
+				<div class="tools-wrapper">
+					<div>
+						Tools:
+					</div>
+					<div class="tools-oneRow">
+						<label for="tools-markers">
+							<input type="checkbox" id="tools-markers" /> Markers
+						</label>
+						<input type="button" class="tools-pushToStack" value="Save to Stack" />
+						<input type="button" class="tools-clearStack" value="Clear Stack" />
+					</div>
+				</div>
+				<div class="coords-wrapper">
+					<div>
+						<span class="coords-X-wrapper">
+							X: <input type="text" class="coords-X number-input" value="400" />
+						</span>
+						<span class="coords-Y-wrapper">
+							Y: <input type="text" class="coords-Y number-input" value="400" />
+						</span>
+					</div>
+				</div>
+				<ul>
+					<label for="step1-radio1">
+						<li>
+							<input type="radio" id="step1-radio1" name="step1-radio" value="step1-radio1" class="step1-radio" />
+							Polygon
+						</li>
+					</label>
+					<label for="step1-radio2">
+						<li>
+							<input type="radio" id="step1-radio2" name="step1-radio" value="step1-radio2" class="step1-radio" />
+							Spiral
+						</li>
+					</label>
+					<label for="step1-radio3" class="hidden">
+						<li>
+							<input type="radio" id="step1-radio3" name="step1-radio" value="step1-radio3" class="step1-radio" />
+							Pattern
+						</li>
+					</label>
+				</ul>
+			</div>
+			<div class="step2">
+				<div class="step2-polygon step2-section hidden">
+					<span class="polygon-edges-wrapper">
+						Number of edges: <input type="text" class="polygon-edges number-input" />
+					</span>
+					<span class="polygon-radius-wrapper">
+						Radius: <input type="text" class="polygon-radius number-input" />
+					</span>
+				</div>
+				<div class="step2-spiral step2-section hidden">
+					<span class="spiral-ratio-wrapper">
+						<div>
+							<input type="radio" id="spiral-ratio-radio1" name="spiral-ratio-radio1" value="spiral-ratio-golden">
+							<label for="spiral-ratio-radio1">Golden Ratio</label> (0.6180339887498949)
+						</div>
+						<div>
+							<input type="radio" id="spiral-ratio-radio2" name="spiral-ratio-radio1" value="spiral-ratio-custom">
+							<label for="spiral-ratio-radio2">Custom: </label>
+							<input type="text" class="spiral-ratio-custom number-input" value="0.5"/>
+						</div>
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
 
-	<canvas id="canvas0" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-	<canvas id="canvas01" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-	<canvas id="canvas02" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-	<canvas id="canvas03" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-	<canvas id="canvas04" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-	<canvas id="canvas05" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-
-	<canvas id="canvas021" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-	<canvas id="canvas022" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-	<canvas id="canvas023" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-	<canvas id="canvas024" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-	<canvas id="canvas025" width="800" height="800" class="playable-canvas"></canvas><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-	<canvas id="canvas00" width="600" height="600" class="playable-canvas"></canvas><br>
-    <canvas id="canvas" width="1600" height="1300" class="playable-canvas"></canvas>
-    <canvas id="canvas1" width="1600" height="1300" class="playable-canvas"></canvas>
-	<canvas id="canvas2" width="600" height="600" class="playable-canvas"></canvas>
-	<canvas id="canvas3" width="600" height="600" class="playable-canvas"></canvas>
-	<canvas id="canvas4" width="600" height="600" class="playable-canvas"></canvas>
-
+	<canvas id="canvas0" width="800" height="800" class="playable-canvas"></canvas>
     <script>
+
 		var pi = Math.PI,
 			phi = 2/(1 + Math.sqrt(5)),
 			phiComp = 1-phi,
@@ -101,6 +203,9 @@
 						arches: {}
 					},
 					getPermission: function(x, y, rad, type, phi1, phi2) {
+						return true;
+
+						// lol!!!!!
 						var key = hash(x) + hash(y) + hash(rad),
 							archKey = typeof(phi1) !== "undefined" ? key + hash(phi1) + hash(phi2) : "",
 							result;
@@ -118,6 +223,9 @@
 					}
 				},
 				boxes = [],
+				clear = function () {
+					ctx.clearRect(0, 0, canvas.width, canvas.height);
+				}
 				positivePiVal = function (angle) {
 					return angle >= 0 ? angle : angle+2*pi;
 				},
@@ -147,8 +255,8 @@
 
 					return boxMinPoint;
 				},
-				drawCustomSpiral = function (customRatio) {
-					drawSpiral(makeSpiral(customRatio));
+				drawCustomSpiral = function () {
+					drawSpiral(makeSpiral.apply(makeSpiral, arguments));
 				},
 				drawSpiral = function (set) {
 					dotSet(set, true, true);
@@ -213,6 +321,7 @@
 				drawPolygon = function(polygon) {
 					var i;
 
+					ctx.beginPath();
 					ctx.moveTo(polygon[0].x, polygon[0].y);
 					for (i = 1; i < polygon.length; i++) {
 						ctx.lineTo(polygon[i].x, polygon[i].y);
@@ -254,6 +363,7 @@
 					return drawPolygon(makeOct(c1, c2, radius));			
 				},	
 				drawLine = function(x1, y1, x2, y2) {
+					ctx.beginPath();
 					ctx.moveTo(x1, y1);
 					ctx.lineTo(x2, y2);
 					ctx.stroke();
@@ -357,8 +467,8 @@
 
 					markMiddleSpot();
 				},
-				makeSpiral = function(customPhi) {
-					var i, newRad, c1 = canvas.width/2-100, c2 = canvas.height/2-140 - (customPhi ? (customPhi<phi ? 250 : 0) : 0), radius = 500,
+				makeSpiral = function(c1, c2, customPhi) {
+					var i, newRad, radius = 500,
 						phi1 = pi/2, phi2 = pi,
 						result = [{
 							x: c1,
@@ -458,30 +568,30 @@
 								}
 							},
 							shapes = {
-								"Rect": makeShapeFunc(4,2),
-								"Pentagon": makeShapeFunc(5,2),
-								"Hexagon": makeShapeFunc(6,2),
-								"Heptagon": makeShapeFunc(7,2),
-								"Octagon": makeShapeFunc(8,2),
-								"Nonagon": makeShapeFunc(9,2),
-								"Rect 3": makeShapeFunc(4,3),
-								"Pentagon 3": makeShapeFunc(5,3),
-								"Hexagon 3": makeShapeFunc(6,3),
-								"Heptagon 3": makeShapeFunc(7,3),
-								"Octagon 3": makeShapeFunc(8,3),
-								"Nonagon 3": makeShapeFunc(9,3),
-								"Rect 4": makeShapeFunc(4,4),
-								"Pentagon 4": makeShapeFunc(5,4),
-								"Hexagon 4": makeShapeFunc(6,4),
-								"Heptagon 4": makeShapeFunc(7,4),
-								"Octagon 4": makeShapeFunc(8,4),
-								"Nonagon 4": makeShapeFunc(9,4),
-								"Rect 5": makeShapeFunc(4,5),
-								"Pentagon 5": makeShapeFunc(5,5),
-								"Hexagon 5": makeShapeFunc(6,5),
-								"Heptagon 5": makeShapeFunc(7,5),
-								"Octagon 5": makeShapeFunc(8,5),
-								"Nonagon 5": makeShapeFunc(9,5),
+//								"Rect": makeShapeFunc(4,2),
+//								"Pentagon": makeShapeFunc(5,2),
+//								"Hexagon": makeShapeFunc(6,2),
+//								"Heptagon": makeShapeFunc(7,2),
+//								"Octagon": makeShapeFunc(8,2),
+//								"Nonagon": makeShapeFunc(9,2),
+//								"Rect 3": makeShapeFunc(4,3),
+//								"Pentagon 3": makeShapeFunc(5,3),
+//								"Hexagon 3": makeShapeFunc(6,3),
+//								"Heptagon 3": makeShapeFunc(7,3),
+//								"Octagon 3": makeShapeFunc(8,3),
+//								"Nonagon 3": makeShapeFunc(9,3),
+//								"Rect 4": makeShapeFunc(4,4),
+//								"Pentagon 4": makeShapeFunc(5,4),
+//								"Hexagon 4": makeShapeFunc(6,4),
+//								"Heptagon 4": makeShapeFunc(7,4),
+//								"Octagon 4": makeShapeFunc(8,4),
+//								"Nonagon 4": makeShapeFunc(9,4),
+//								"Rect 5": makeShapeFunc(4,5),
+//								"Pentagon 5": makeShapeFunc(5,5),
+//								"Hexagon 5": makeShapeFunc(6,5),
+//								"Heptagon 5": makeShapeFunc(7,5),
+//								"Octagon 5": makeShapeFunc(8,5),
+//								"Nonagon 5": makeShapeFunc(9,5),
 							}
 
 						for (key in shapes)
@@ -500,45 +610,316 @@
 				this.drawMetatron = drawMetatron;
 				this.drawFlowerOfLife = drawFlowerOfLife;
 				this.drawCrossedOct = drawFlowerOct;
+				this.spiral = drawCustomSpiral;
+				this.clear = clear;
+				this.markers = markMiddleSpot;
+
+				this.polygon = function (c1, c2, r, edges) {
+					var polygon = makeGenericPolygon(c1, c2, r, edges);
+					drawPolygon(polygon);
+				}
+
 				this.layouts = layouts;
 				ctx.strokeStyle = "#FFF";
 			},
-			canvas0 = new geometryMaker("canvas0"),
-			canvas01 = new geometryMaker("canvas01"),
-			canvas02 = new geometryMaker("canvas02"),
-			canvas03 = new geometryMaker("canvas03"),
-			canvas04 = new geometryMaker("canvas04"),
-			canvas05 = new geometryMaker("canvas05"),
-			canvas021 = new geometryMaker("canvas021"),
-			canvas022 = new geometryMaker("canvas022"),
-			canvas023 = new geometryMaker("canvas023"),
-			canvas024 = new geometryMaker("canvas024"),
-			canvas025 = new geometryMaker("canvas025"),
-			canvas00 = new geometryMaker("canvas00"),
-			canvas1 = new geometryMaker("canvas"),
-			canvas11 = new geometryMaker("canvas1"),
-			canvas2 = new geometryMaker("canvas2"),
-			canvas3 = new geometryMaker("canvas3"),
-			canvas4 = new geometryMaker("canvas4");
+			ui = function () {
+				var regi = {
+						onlyNumbers: /^\d+$/,
+						onlyNumbersWithFractions: /^\d+(\.\d+)?$/,
+					},
+					shapeStack = [],
+					exportShapeStack = [],
+					lsStack = localStorage.getItem('stack'),
+					$controls = $('#ui-controls-wrapper'),
+					$step1_tools = $controls.find('.tools-wrapper'),
+					$step1_tools_pushToStack = $step1_tools.find('.tools-pushToStack'),
+					$step1_tools_clearStack = $step1_tools.find('.tools-clearStack'),
+					$step1_tools_markers = $step1_tools.find('#tools-markers'),
+					$step1_coords = $controls.find('.coords-wrapper .coords-X, .coords-wrapper .coords-Y'),
+					$step1_coordsX = $step1_coords.filter('.coords-X'),
+					$step1_coordsY = $step1_coords.filter('.coords-Y'),
+					$step1_radios = $controls.find("input[type=radio][name=step1-radio]"),
+					$step1_radiosSpiral = $step1_radios.filter('#step1-radio2'),
+					$step2 = $controls.find('.step2'),
+					$step2_sections = $step2.find('.step2-section'),
+					$step2_polygon_inputs = $step2.find('.step2-polygon input'),
+					$step2_polygon_edges = $step2_polygon_inputs.filter('.polygon-edges'),
+					$step2_polygon_radius = $step2_polygon_inputs.filter('.polygon-radius'),
+					$step2_spiral_ratio = $step2.find('.spiral-ratio-wrapper'),
+					$step2_spiral_radios = $step2_spiral_ratio.find('input[type=radio][name=spiral-ratio-radio1]'),
+					$step2_spiral_radiosGolden = $step2_spiral_radios.filter('#spiral-ratio-radio1'),
+					$step2_spiral_radiosCustom = $step2_spiral_radios.filter('#spiral-ratio-radio2'),
+					$step2_spiral_ratioCustom = $step2_spiral_ratio.find('.spiral-ratio-custom'),
+					ranges = {
+						x: [0, 1000],
+						y: [0, 1000],
+						edges: [3, 20],
+						radius: [1, 1000],
+						ratio: [0.001, 0.9999]
+					},
+					isValid = {
+						polygon: function () {
+							var isValid = true,
+								edges = $step2_polygon_edges.val(),
+								radius = $step2_polygon_radius.val();
+
+							if (!edges.match(regi.onlyNumbers) || +edges < ranges.edges[0] || +edges > ranges.edges[1]) {
+								isValid = false;
+								edges && $step2_polygon_edges.addClass('bad');
+							} else {
+								$step2_polygon_edges.removeClass('bad');
+							}
+							if (!radius.match(regi.onlyNumbers) || +radius < ranges.radius[0] || +radius > ranges.radius[1]) {
+								isValid = false;
+								radius && $step2_polygon_radius.addClass('bad');
+							} else {
+								$step2_polygon_radius.removeClass('bad');
+							}
+
+							return isValid;
+						},
+						spiral: function () {
+							var isValid = false,
+								customRatio = $step2_spiral_ratioCustom.val();
+
+							if ($step2_spiral_radiosGolden.is(':checked')) {
+								isValid = true;
+							} else if ($step2_spiral_radiosCustom.is(':checked')) {
+								if (!customRatio.match(regi.onlyNumbersWithFractions) || +customRatio < ranges.ratio[0] || +customRatio > ranges.ratio[1]) {
+									customRatio && $step2_spiral_ratioCustom.addClass('bad');
+								} else {
+									isValid = true;
+									customRatio && $step2_spiral_ratioCustom.removeClass('bad');
+								}
+							}
+
+							return isValid;
+						},
+						coords: function () {
+							var isValid = true, x = $step1_coordsX.val(), y = $step1_coordsY.val();
+
+							if (!x.match(regi.onlyNumbers) || +x < ranges.x[0] || +x > ranges.x[1]) {
+								isValid = false;
+								x && $step1_coordsX.addClass('bad');
+							} else {
+								$step1_coordsX.removeClass('bad');
+							}
+							if (!y.match(regi.onlyNumbers) || +y < ranges.y[0] || +y > ranges.y[1]) {
+								isValid = false;
+								y && $step1_coordsY.addClass('bad');
+							} else {
+								$step1_coordsY.removeClass('bad');
+							}
+
+							return isValid;
+						}
+					},
+					upDown = function (e, min, max, customIncrement) {
+							var inc = customIncrement || 1;
+							// UP and DOWN arrows
+							switch (e.keyCode) {
+								case 38:
+									if (this.value.match(regi.onlyNumbersWithFractions) && (+this.value + inc)<=max) {
+										this.value = roundLight(+this.value + inc);
+									}
+									break;
+								case 40:
+									if (this.value.match(regi.onlyNumbersWithFractions) && (+this.value - inc)>=min) {
+										this.value = roundLight(+this.value - inc);
+									}
+									break;
+							}
+						},
+					drawStack = function () {
+						for (var i=0; i<shapeStack.length; i++) {
+							shapeStack[i]();
+						}
+						if ($step1_tools_markers.is(':checked')) {
+							mainCanvas.markers();
+						}
+					},
+					updateStackIndication = function () {
+						$step1_tools_pushToStack.val('Save to Stack (' + shapeStack.length + ')');
+					},
+					generatePolygon = function (e, store) {
+						var edges, radius, x, y;
+						setTimeout(function () {
+							if (e && $(e.target).is($step2_polygon_edges)) {
+								upDown.apply(e.target, [e].concat(ranges.edges));
+							}
+							if (e && $(e.target).is($step2_polygon_radius)) {
+								upDown.apply(e.target, [e].concat(ranges.radius).concat(10));
+							}
+							if (e && $(e.target).is($step1_coordsX)) {
+								upDown.apply(e.target, [e].concat(ranges.x).concat(10));
+							}
+							if (e && $(e.target).is($step1_coordsY)) {
+								upDown.apply(e.target, [e].concat(ranges.y).concat(10));
+							}
+
+							if (isValid.coords() && isValid.polygon()) {
+								edges = +$step2_polygon_edges.val();
+								radius = +$step2_polygon_radius.val();
+								x = +$step1_coordsX.val();
+								y = +$step1_coordsY.val();
+
+								if (store) {
+									shapeStack.push(mainCanvas.polygon.bind(mainCanvas, x, y, radius, edges));
+									exportShapeStack.push(['polygon', x, y, radius, edges]);
+									localStorage.setItem('stack', JSON.stringify(exportShapeStack))
+									updateStackIndication();
+								} else {
+									mainCanvas.clear();
+									drawStack();
+									mainCanvas.polygon(x, y, radius, edges);
+								}
+							}
+						}, 0)
+					},
+					storePolygon = generatePolygon.bind(null, null, true),
+					generateSpiral = function (e, store) {
+						var ratio, x, y;
+						setTimeout(function () {
+							if (e && $(e.target).is($step2_spiral_ratioCustom)) {
+								upDown.apply(e.target, [e].concat(ranges.ratio));
+							}
+
+							if (isValid.coords() && isValid.spiral()) {
+								if ($step2_spiral_radiosCustom.is(':checked')) {
+									ratio = +$step2_spiral_ratioCustom.val();
+								}
+								x = +$step1_coordsX.val();
+								y = +$step1_coordsY.val();
+
+								if (store) {
+									shapeStack.push(mainCanvas.spiral.bind(mainCanvas, x, y, ratio));
+									exportShapeStack.push(['spiral', x, y, ratio]);
+									localStorage.setItem('stack', JSON.stringify(exportShapeStack))
+									updateStackIndication();
+								} else {
+									mainCanvas.clear();
+									drawStack();
+									mainCanvas.spiral(x, y, ratio);
+								}
+							}
+						}, 0)
+					},
+					storeSpiral = generateSpiral.bind(null, null, true),
+					roundLight = function (num) {
+						var result = ("" + num).substr(0, 6);
+						return +result;
+					}
+					functionifyExportStack = function () {
+						shapeStack = exportShapeStack.map(function (shape) {
+							var type = shape[0], result;
+							if (type === 'polygon') {
+								result = mainCanvas.polygon.bind.apply(mainCanvas.polygon, [mainCanvas].concat(shape.slice(1)));
+							}
+							if (type === 'spiral') {
+								result = mainCanvas.spiral.bind.apply(mainCanvas.spiral, [mainCanvas].concat(shape.slice(1)));
+							}
+							return result;
+						})
+					};
+
+				// Step 1 Controls
+				$step1_radios.change(function () {
+					var actions = {
+						"step1-radio1": $step2_sections.filter('.step2-polygon'),
+						"step1-radio2": $step2_sections.filter('.step2-spiral')
+					}
+
+					$step2_sections._hide();
+
+					actions[this.value]._show.call(actions[this.value]);
+				})
+
+				$step2_spiral_radios
+						.add($step2_spiral_ratioCustom)
+						.change(generateSpiral)
+
+				// Step 2 //
+
+				// Polygon Edges
+				$step2_polygon_inputs
+						.add($step1_coords)
+						.on("keydown", generatePolygon);
+
+				$step1_coords
+						.add($step2_spiral_ratioCustom)
+						.on("keydown", function (e) {
+							if ($step1_radiosSpiral.is(':checked')) {
+								generateSpiral(e);
+							}
+							upDown.apply(e.target, [e].concat(ranges.ratio).concat(0.05));
+						})
+
+				$step1_tools_markers.change(function () {
+					if ($(this).is(':checked')) {
+						mainCanvas.markers();
+					} else {
+						mainCanvas.clear();
+					}
+				})
+				$step1_tools_pushToStack.click(function () {
+					var selected = $step1_radios.filter(':checked').val(),
+						actions = {
+							"step1-radio1": storePolygon,
+							"step1-radio2": storeSpiral
+						}
+
+					if (actions[selected]) {
+						actions[selected]();
+					}
+				});
+
+				$step1_tools_clearStack.click(function () {
+					exportShapeStack = [];
+					shapeStack = [];
+					localStorage.setItem('stack', '');
+					updateStackIndication();
+					mainCanvas.clear();
+				})
+
+				if (lsStack) {
+					exportShapeStack = JSON.parse(lsStack);
+					functionifyExportStack();
+					updateStackIndication();
+					drawStack();
+				}
+
+				this.getJSON = function () {
+					console.log(JSON.stringify(exportShapeStack));
+				}
+			},
+			mainCanvas = new geometryMaker("canvas0"),
+			uiInstance = new ui();
+
+		$.fn._hide = function () {
+			$(this).addClass('hidden');
+		}
+		$.fn._show = function () {
+			$(this).removeClass('hidden');
+		}
 
         //canvas1.drawMetatron();
-        canvas0.layouts.patterns.spirals(1);
-        canvas01.layouts.patterns.spirals(2);
-        canvas02.layouts.patterns.spirals(3);
-        canvas03.layouts.patterns.spirals(4);
-        canvas04.layouts.patterns.spirals(5);
-        canvas05.layouts.patterns.spirals(15);
-		canvas021.layouts.patterns.spirals(2, 0.2);
-		canvas022.layouts.patterns.spirals(3, 0.2);
-		canvas023.layouts.patterns.spirals(4, 0.2);
-		canvas024.layouts.patterns.spirals(5, 0.2);
-		canvas025.layouts.patterns.spirals(15, 0.2);
-        canvas00.layouts.patterns.spiral(0.89);
-        canvas1.layouts.polygons();
-        canvas11.layouts.polygons(true);
-		canvas2.layouts.patterns.metatron();
-		canvas3.layouts.patterns.flowerOfLife();
-		canvas4.layouts.patterns.tiledHex();
+		//mainCanvas.layouts.patterns.spirals(1);
+//        canvas01.layouts.patterns.spirals(2);
+//        canvas02.layouts.patterns.spirals(3);
+//        canvas03.layouts.patterns.spirals(4);
+//        canvas04.layouts.patterns.spirals(5);
+//        canvas05.layouts.patterns.spirals(15);
+//		canvas021.layouts.patterns.spirals(2, 0.2);
+//		canvas022.layouts.patterns.spirals(3, 0.2);
+//		canvas023.layouts.patterns.spirals(4, 0.2);
+//		canvas024.layouts.patterns.spirals(5, 0.2);
+//		canvas025.layouts.patterns.spirals(15, 0.2);
+//        canvas00.layouts.patterns.spiral(0.89);
+//        canvas1.layouts.polygons();
+//        canvas11.layouts.polygons(true);
+//		canvas2.layouts.patterns.metatron();
+//		canvas3.layouts.patterns.flowerOfLife();
+//		canvas4.layouts.patterns.tiledHex();
 
     </script>
 </body>
