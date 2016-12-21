@@ -1,7 +1,7 @@
 <html>
 
 <head>
-	<script src="jquery-3.1.1.min.js"></script>
+	<script src="jquery-3.1.1.js"></script>
     <style>
 		ul { list-style-type: none; }
         label { cursor: pointer; }
@@ -18,13 +18,20 @@
         }
         
         .playable-canvas {
-            border: 1px solid black;
+			border: 1px solid white;
             text-align: center;
         }
 
 		.ui-wrapper {
-			width: 500px;
+			top: 50px;
+			left: 60px;
+			width: 440px;
+			padding: 20px;
+			padding-top: 5px;
 			margin: 40px auto;
+			position: absolute;
+			border-radius: 8px;
+			border: 1px solid white;
 		}
 
 		.ui-controls-wrapper {
@@ -63,6 +70,7 @@
     </style>
 </head>
 <body>
+	<canvas id="canvas0" width="800" height="800" class="playable-canvas"></canvas>
 	<div class="ui-wrapper">
 		<div class="ui-title"><h3>Control Panel</h3></div>
 		<div class="ui-controls-wrapper" id="ui-controls-wrapper">
@@ -136,7 +144,6 @@
 		</div>
 	</div>
 
-	<canvas id="canvas0" width="800" height="800" class="playable-canvas"></canvas>
     <script>
 
 		var pi = Math.PI,
@@ -714,17 +721,18 @@
 							return isValid;
 						}
 					},
-					upDown = function (e, min, max, customIncrement) {
-							var inc = customIncrement || 1;
+					upDown = function (e, range, customIncrement) {
+							var inc = customIncrement || 1,
+								min = range[0], max = range[1];
 							// UP and DOWN arrows
 							switch (e.keyCode) {
 								case 38:
-									if (this.value.match(regi.onlyNumbersWithFractions) && (+this.value + inc)<=max) {
+									if (this.value.match(regi.onlyNumbersWithFractions) && (+this.value + inc) <= max) {
 										this.value = roundLight(+this.value + inc);
 									}
 									break;
 								case 40:
-									if (this.value.match(regi.onlyNumbersWithFractions) && (+this.value - inc)>=min) {
+									if (this.value.match(regi.onlyNumbersWithFractions) && (+this.value - inc) >= min) {
 										this.value = roundLight(+this.value - inc);
 									}
 									break;
@@ -744,19 +752,6 @@
 					generatePolygon = function (e, store) {
 						var edges, radius, x, y;
 						setTimeout(function () {
-							if (e && $(e.target).is($step2_polygon_edges)) {
-								upDown.apply(e.target, [e].concat(ranges.edges));
-							}
-							if (e && $(e.target).is($step2_polygon_radius)) {
-								upDown.apply(e.target, [e].concat(ranges.radius).concat(10));
-							}
-							if (e && $(e.target).is($step1_coordsX)) {
-								upDown.apply(e.target, [e].concat(ranges.x).concat(10));
-							}
-							if (e && $(e.target).is($step1_coordsY)) {
-								upDown.apply(e.target, [e].concat(ranges.y).concat(10));
-							}
-
 							if (isValid.coords() && isValid.polygon()) {
 								edges = +$step2_polygon_edges.val();
 								radius = +$step2_polygon_radius.val();
@@ -811,18 +806,18 @@
 					}
 					functionifyExportStack = function () {
 						shapeStack = exportShapeStack.map(function (shape) {
-							var type = shape[0], result;
-							if (type === 'polygon') {
-								result = mainCanvas.polygon.bind.apply(mainCanvas.polygon, [mainCanvas].concat(shape.slice(1)));
-							}
-							if (type === 'spiral') {
-								result = mainCanvas.spiral.bind.apply(mainCanvas.spiral, [mainCanvas].concat(shape.slice(1)));
-							}
-							return result;
+							var type = shape[0];							
+							return mainCanvas[type].bind.apply(mainCanvas[type], [mainCanvas].concat(shape.slice(1)));
 						})
+					},
+					makeUpDownFunction = function (range, customInc) {
+						return function (e) {
+							upDown.call(e.target, e, range, customInc);
+						}
 					};
 
-				// Step 1 Controls
+				// Step 1 //
+				// First step radios
 				$step1_radios.change(function () {
 					var actions = {
 						"step1-radio1": $step2_sections.filter('.step2-polygon'),
@@ -832,27 +827,26 @@
 					$step2_sections._hide();
 
 					actions[this.value]._show.call(actions[this.value]);
-				})
-
-				$step2_spiral_radios
-						.add($step2_spiral_ratioCustom)
-						.change(generateSpiral)
+				});
+				// Bind up/downs
+				$step1_coords.on("keydown", makeUpDownFunction(ranges.x, 10)); // Use x's for both, separatable tho
+				$step2_polygon_edges.on("keydown", makeUpDownFunction(ranges.edges));
+				$step2_polygon_radius.on("keydown", makeUpDownFunction(ranges.radius, 10));
+				$step2_spiral_ratioCustom.on("keydown", makeUpDownFunction(ranges.ratio, 0.05));
 
 				// Step 2 //
+				// Polygon Edges and Radius
+				$step2_polygon_inputs.on("keydown", generatePolygon);
 
-				// Polygon Edges
-				$step2_polygon_inputs
-						.add($step1_coords)
-						.on("keydown", generatePolygon);
+				// Golden or Custom Radios and Custom input
+				$step2_spiral_radios.change(generateSpiral);
+				$step2_spiral_ratioCustom.on("keydown", generateSpiral);
 
+				// X and Y to also generate main shapes
 				$step1_coords
-						.add($step2_spiral_ratioCustom)
-						.on("keydown", function (e) {
-							if ($step1_radiosSpiral.is(':checked')) {
-								generateSpiral(e);
-							}
-							upDown.apply(e.target, [e].concat(ranges.ratio).concat(0.05));
-						})
+						.on("keydown", generatePolygon)
+						.on("keydown", generateSpiral);
+
 
 				$step1_tools_markers.change(function () {
 					if ($(this).is(':checked')) {
@@ -872,7 +866,6 @@
 						actions[selected]();
 					}
 				});
-
 				$step1_tools_clearStack.click(function () {
 					exportShapeStack = [];
 					shapeStack = [];
