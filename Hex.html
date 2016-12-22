@@ -3,8 +3,8 @@
 <head>
 	<script src="jquery-3.1.1.js"></script>
     <style>
-		ul { list-style-type: none; }
-        label { cursor: pointer; }
+		ul { list-style-type: none; display: inline-block; margin: 0; }
+        label, input[type=checkbox], input[type=radio] { cursor: pointer; }
 		input[type=radio] { vertical-align: text-bottom; }
 		input[type=checkbox] { vertical-align: sub; }
 		label { line-height: 24px; }
@@ -16,21 +16,27 @@
             text-align: center;
             margin: 40px auto 0;
         }
-        
+
+		.verTop { vertical-align: top; }
+		.marginTopS { margin-top: 4px; }
+		.lineHeightM { line-height: 25px; }
+		.textAlignLeft { text-align: left; }
+
         .playable-canvas {
 			border: 1px solid white;
             text-align: center;
+			border-radius: 3px;
         }
 
 		.ui-wrapper {
-			top: 50px;
+			top: 0px;
 			left: 60px;
 			width: 440px;
 			padding: 20px;
 			padding-top: 5px;
 			margin: 40px auto;
 			position: absolute;
-			border-radius: 8px;
+			border-radius: 3px;
 			border: 1px solid white;
 		}
 
@@ -43,12 +49,37 @@
 		}
 
 		.number-input {
+			width: 50px;
+			border-radius: 3px;
 			text-align: center;
-			width: 80px;
 		}
 
-		.coords-wrapper, .tools-wrapper {
+		.tools-rotator-angle {
+			margin-left: 95px;
+		}
+
+		.polygon-edges-wrapper {
+			padding: 0 0 12px;
+		}
+
+		.rotation-inner-wrapper {
+			padding-left: 23px;
+		}
+
+		.rotation-axis-wrapper {
+			padding: 10px 24px 0;
+		}
+
+		.coords-wrapper,
+		.tools-wrapper,
+		.step2-polygon {
 			text-align: center;
+		}
+
+		.spiral-ratio-wrapper {
+			width: 196px;
+			margin: auto;
+			text-align: left;
 		}
 
 		.coords-wrapper>div, .tools-wrapper>div {
@@ -67,6 +98,14 @@
 			box-shadow: 0px 0px 7px 3px #e00f0f;
 		}
 
+		.flexHor {
+			display: flex;
+			flex-direction: row;
+		}
+
+		.flex1 { flex: 1; }
+		.flex2 { flex: 2; }
+
     </style>
 </head>
 <body>
@@ -75,18 +114,6 @@
 		<div class="ui-title"><h3>Control Panel</h3></div>
 		<div class="ui-controls-wrapper" id="ui-controls-wrapper">
 			<div class="step-1">
-				<div class="tools-wrapper">
-					<div>
-						Tools:
-					</div>
-					<div class="tools-oneRow">
-						<label for="tools-markers">
-							<input type="checkbox" id="tools-markers" /> Markers
-						</label>
-						<input type="button" class="tools-pushToStack" value="Save to Stack" />
-						<input type="button" class="tools-clearStack" value="Clear Stack" />
-					</div>
-				</div>
 				<div class="coords-wrapper">
 					<div>
 						<span class="coords-X-wrapper">
@@ -120,25 +147,84 @@
 			</div>
 			<div class="step2">
 				<div class="step2-polygon step2-section hidden">
-					<span class="polygon-edges-wrapper">
+					<div class="polygon-edges-wrapper">
 						Number of edges: <input type="text" class="polygon-edges number-input" />
-					</span>
-					<span class="polygon-radius-wrapper">
-						Radius: <input type="text" class="polygon-radius number-input" />
-					</span>
+					</div>
+					<div class="polygon-radius-wrapper">
+						Radius: <input type="text" class="polygon-radius number-input" value="200" />
+					</div>
 				</div>
 				<div class="step2-spiral step2-section hidden">
-					<span class="spiral-ratio-wrapper">
+					<div class="spiral-ratio-wrapper">
 						<div>
-							<input type="radio" id="spiral-ratio-radio1" name="spiral-ratio-radio1" value="spiral-ratio-golden">
-							<label for="spiral-ratio-radio1">Golden Ratio</label> (0.6180339887498949)
+							<label for="spiral-ratio-radio1">
+								<input type="radio" id="spiral-ratio-radio1" name="spiral-ratio-radio1" value="spiral-ratio-golden">
+								Golden Ratio (0.61803...)
+							</label>
 						</div>
 						<div>
-							<input type="radio" id="spiral-ratio-radio2" name="spiral-ratio-radio1" value="spiral-ratio-custom">
-							<label for="spiral-ratio-radio2">Custom: </label>
+							<label for="spiral-ratio-radio2">
+								<input type="radio" id="spiral-ratio-radio2" name="spiral-ratio-radio1" value="spiral-ratio-custom">
+								Custom:
+							</label>
 							<input type="text" class="spiral-ratio-custom number-input" value="0.5"/>
 						</div>
-					</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="tools-wrapper">
+				<div>
+					Tools:
+				</div>
+				<div class="tools-oneRow">
+					<label for="tools-markers">
+						<input type="checkbox" id="tools-markers" /> Markers
+					</label>
+					<input type="button" class="tools-pushToStack" value="Save to Stack" />
+					<input type="button" class="tools-clearStack" value="Clear Stack" />
+				</div>
+				<div class="rotation-wrapper textAlignLeft">
+					<div class="rotation-inner-wrapper">
+						<div>
+							<label for="tools-rotator-checkbox">
+								<input type="checkbox" id="tools-rotator-checkbox" /> Rotate
+							</label>
+							<span class="tools-rotator-angle hidden">
+								Angle: <input type="text" class="rotator-angle number-input" value="0" />
+							</span>
+						</div>
+						<div class="rotation-axis-wrapper hidden">
+							<span class="verTop lineHeightM">
+								Axis Point:
+							</span>
+							<span>
+								<ul>
+									<label for="tools-rotator-axisSMid">
+										<li>
+											<input type="radio" class="tools-rotator-mode-radios" name="tools-rotator-mode" id="tools-rotator-axisSMid" checked="checked" /> Shape Midpoint
+										</li>
+									</label>
+
+									<label for="tools-rotator-axisCMid">
+										<li>
+											<input type="radio" class="tools-rotator-mode-radios" name="tools-rotator-mode" id="tools-rotator-axisCMid" /> Canvas Midpoint
+										</li>
+									</label>
+									<li>
+										<label for="tools-rotator-axisCustom">
+											<input type="radio" class="tools-rotator-mode-radios" name="tools-rotator-mode" id="tools-rotator-axisCustom" /> Custom
+										</label>
+										X: <input type="text" class="tools-rotator-customAxisInput tools-rotator-customAxisInputX number-input" value="100" />
+										Y: <input type="text" class="tools-rotator-customAxisInput tools-rotator-customAxisInputY number-input" value="100" />
+									</li>
+								</ul>
+							</span>
+						</div>
+					</div>
+				</div>
+				<div class="export-wrapper hidden">
+					<textarea id="export-output"></textarea>
 				</div>
 			</div>
 		</div>
@@ -180,7 +266,6 @@
 					botRToBot: function(x, y, rad) { return { x: x - rad * hexCosRatio, y: y + rad * hexSinRatio }; },
 					botToBotL: function(x, y, rad) { return { x: x - rad * hexCosRatio, y: y - rad * hexSinRatio }; },
 					botLToTopL: function(x, y, rad) { return { x: x, y: y - rad }; }
-					//,topLTTop: function (x, y, rad) { return { x: x + rad * hexCosRatio, y: y - rad * hexSinRatio }; }
 				},
 				octVertices = {
 					midToTopLeft: function(x, y, rad) { return { x: x - rad * octSinRatio, y: y - rad * octCosRatio }; },
@@ -199,9 +284,7 @@
 						var mid = { x: x + rad * octSinRatio, y: y - rad * octCosRatio };
 						return { x: mid.x - rad * octCosRatio, y: mid.y + rad * octSinRatio }; 
 					},
-					lBotToLTop: function(x, y, rad) { return { x: x, y: y - rad * octSinRatio * 2 }; },
-					//botLToTopL: function(x, y, rad) { return { x: x, y: y - rad }; }
-					//,topLTTop: function (x, y, rad) { return { x: x + rad * hexCosRatio, y: y - rad * hexSinRatio }; }
+					lBotToLTop: function(x, y, rad) { return { x: x, y: y - rad * octSinRatio * 2 }; }
 				},
 				penCache = {
 					cache: {
@@ -210,9 +293,9 @@
 						arches: {}
 					},
 					getPermission: function(x, y, rad, type, phi1, phi2) {
-						return true;
 
-						// lol!!!!!
+						return true;  // lol!!!!!
+
 						var key = hash(x) + hash(y) + hash(rad),
 							archKey = typeof(phi1) !== "undefined" ? key + hash(phi1) + hash(phi2) : "",
 							result;
@@ -262,8 +345,23 @@
 
 					return boxMinPoint;
 				},
-				drawCustomSpiral = function () {
-					drawSpiral(makeSpiral.apply(makeSpiral, arguments));
+				drawCustomSpiral = function (x, y, ratio, rotation) {
+					var spiral = makeSpiral(x, y, ratio);
+
+					if (rotation.rotate) {
+						spiral = rotateSet(spiral, rotation.axisPoint, rotation.theta);
+					}
+
+					drawSpiral(spiral);
+				},
+				drawCustomPolygon = function (c1, c2, r, edges, rotation) {
+					var polygon = makeGenericPolygon(c1, c2, r, edges);
+
+					if (rotation.rotate) {
+						polygon = rotateSet(polygon, rotation.axisPoint, rotation.theta);
+					}
+
+					drawPolygon(polygon);
 				},
 				drawSpiral = function (set) {
 					dotSet(set, true, true);
@@ -460,15 +558,7 @@
 					drawSpiral(spiral);
 
 					for (i = 1; i < sectionNumber; i++) {
-						newSet = spiral.map(function (point) {
-							var pointPolar = convertToPolar(point, midPoint);
-
-							pointPolar.theta -= softRound(thetaOffset*i);
-							pointPolar.phi1 -= softRound(thetaOffset*i);
-							pointPolar.phi2 -= softRound(thetaOffset*i);
-
-							return polarToCartesian(pointPolar, midPoint);
-						})
+						newSet = rotateSet(spiral, midPoint, thetaOffset*i);
 						drawSpiral(newSet);
 					}
 
@@ -484,9 +574,28 @@
 							phi1: phi1,
 							phi2: phi2
 						}], rotation = [0, 1, 0, -1],
-						myPhi = customPhi || phi;
+						myPhi = customPhi || phi,
+						strength = 20;
 
-					for (i=0; i<63; i++) {
+					if (customPhi > 0.75) {
+						strength = 60;
+						if (customPhi > 0.9) {
+							strength = 160;
+							if (customPhi > 0.95) {  //             Rewrite elegantly!
+								strength = 460;
+								if (customPhi > 0.98) {
+									strength = 1100;
+									if (customPhi > 0.997) {
+										strength = 4600;
+									}
+								}
+							}
+						}
+					} console.log("Iteration Stength", strength);
+					// < 0.75: 23, <0.9: 60, <0.97:160....???????
+
+
+					for (i=0; i<strength; i++) {
 						newRad = radius*(1 - myPhi);
 
 						c1 = c1 + newRad*rotation[i%4];
@@ -525,6 +634,25 @@
 					drawFlowerHex(c1, c2, radius / 2, full);
 					drawDiagonals(drawHex(c1, c2, radius * 2))
 				},
+				rotateSet = function (set, axisPoint, thetaOffset) {
+					var pointPolar, roundedTheta, madeAxisPoint, setEnd = set[set.length-1];
+					if (axisPoint.x === null || axisPoint.y === null) { // If either is set to null, meaning a spiral rotating around his midpoint (unknown before drawn)
+						madeAxisPoint = {
+							x: setEnd.x,
+							y: setEnd.y
+						}
+					}
+					return set.map(function (point) {
+						roundedTheta = softRound(thetaOffset);
+						pointPolar = convertToPolar(point, madeAxisPoint || axisPoint);
+
+						pointPolar.theta -= roundedTheta;
+						pointPolar.phi1 -= roundedTheta;
+						pointPolar.phi2 -= roundedTheta;
+
+						return polarToCartesian(pointPolar, madeAxisPoint || axisPoint);
+					})
+				},
 				convertToPolar = function (point, relativeTo) {
 					var toDeg = 180/pi,
 						xDif = point.x - relativeTo.x,
@@ -545,9 +673,6 @@
 						phi1: point.phi1,
 						phi2: point.phi2
 					}
-//					console.log(xDif, yDif);
-//					//console.log(negX, yDif/r*negX, theta, fullTheta);
-//					console.log(parseInt(theta*toDeg), parseInt(fullTheta*toDeg), (fThet % pi)*toDeg);
 				},
 				polarToCartesian = function (point, relativeTo) {
 					var result = {
@@ -559,74 +684,16 @@
 					}
 					return result;
 				},
-				layouts = {
-					polygons: function(notRound) {
-						var key, makeShapeFunc = function (sides, diagonality) {
-								return function (title) {
-									var box = addBox(title),
-										polygon = makeGenericPolygon(box.x, box.y, 100, sides);
-
-									if (notRound) {
-										drawPolygon(polygon);
-									} else {
-										drawCircle(box.x, box.y, 100)
-									}
-									drawDiagonals(polygon, diagonals.everyN(diagonality));
-								}
-							},
-							shapes = {
-//								"Rect": makeShapeFunc(4,2),
-//								"Pentagon": makeShapeFunc(5,2),
-//								"Hexagon": makeShapeFunc(6,2),
-//								"Heptagon": makeShapeFunc(7,2),
-//								"Octagon": makeShapeFunc(8,2),
-//								"Nonagon": makeShapeFunc(9,2),
-//								"Rect 3": makeShapeFunc(4,3),
-//								"Pentagon 3": makeShapeFunc(5,3),
-//								"Hexagon 3": makeShapeFunc(6,3),
-//								"Heptagon 3": makeShapeFunc(7,3),
-//								"Octagon 3": makeShapeFunc(8,3),
-//								"Nonagon 3": makeShapeFunc(9,3),
-//								"Rect 4": makeShapeFunc(4,4),
-//								"Pentagon 4": makeShapeFunc(5,4),
-//								"Hexagon 4": makeShapeFunc(6,4),
-//								"Heptagon 4": makeShapeFunc(7,4),
-//								"Octagon 4": makeShapeFunc(8,4),
-//								"Nonagon 4": makeShapeFunc(9,4),
-//								"Rect 5": makeShapeFunc(4,5),
-//								"Pentagon 5": makeShapeFunc(5,5),
-//								"Hexagon 5": makeShapeFunc(6,5),
-//								"Heptagon 5": makeShapeFunc(7,5),
-//								"Octagon 5": makeShapeFunc(8,5),
-//								"Nonagon 5": makeShapeFunc(9,5),
-							}
-
-						for (key in shapes)
-							shapes[key](key);
-
-					},
-					patterns: {
-						metatron: drawMetatron,
-						flowerOfLife: drawFlowerOfLife,
-						tiledHex: drawTiledHex,
-						spiral: drawCustomSpiral,
-						spirals: drawSpirals,
-					}
-				};
 				this.drawTiledHex = drawTiledHex;
 				this.drawMetatron = drawMetatron;
 				this.drawFlowerOfLife = drawFlowerOfLife;
 				this.drawCrossedOct = drawFlowerOct;
+
+				this.polygon = drawCustomPolygon;
 				this.spiral = drawCustomSpiral;
 				this.clear = clear;
 				this.markers = markMiddleSpot;
 
-				this.polygon = function (c1, c2, r, edges) {
-					var polygon = makeGenericPolygon(c1, c2, r, edges);
-					drawPolygon(polygon);
-				}
-
-				this.layouts = layouts;
 				ctx.strokeStyle = "#FFF";
 			},
 			ui = function () {
@@ -637,15 +704,29 @@
 					shapeStack = [],
 					exportShapeStack = [],
 					lsStack = localStorage.getItem('stack'),
+					$canvas = $('#canvas0'),
 					$controls = $('#ui-controls-wrapper'),
 					$step1_tools = $controls.find('.tools-wrapper'),
+					$step1_tools_exportWrapper = $step1_tools.find('.export-wrapper'),
+					$step1_tools_exportOutputInput = $step1_tools_exportWrapper.find('textarea'),
 					$step1_tools_pushToStack = $step1_tools.find('.tools-pushToStack'),
 					$step1_tools_clearStack = $step1_tools.find('.tools-clearStack'),
-					$step1_tools_markers = $step1_tools.find('#tools-markers'),
+					$step1_tools_markersSwitch = $step1_tools.find('#tools-markers'),
+					$step1_tools_rotator_switchCheckbox = $step1_tools.find('#tools-rotator-checkbox'),
+					$step1_tools_rotator_section = $step1_tools.find('.tools-rotator-angle, .rotation-axis-wrapper'),
+					$step1_tools_rotator_angleInput = $step1_tools.find('.rotator-angle'),
+					$step1_tools_rotator_axisRadios = $step1_tools.find('.tools-rotator-mode-radios'),
+					$step1_tools_rotator_axisCMidpointRadio = $step1_tools_rotator_axisRadios.filter('#tools-rotator-axisCMid'),
+					$step1_tools_rotator_axisSMidpointRadio = $step1_tools_rotator_axisRadios.filter('#tools-rotator-axisSMid'),
+					$step1_tools_rotator_axisCustomRadio = $step1_tools_rotator_axisRadios.filter('#tools-rotator-axisCustom'),
+					$step1_tools_rotator_axisCustomInputs = $step1_tools.find('.tools-rotator-customAxisInput'),
+					$step1_tools_rotator_axisCustomXInput = $step1_tools_rotator_axisCustomInputs.filter('.tools-rotator-customAxisInputX'),
+					$step1_tools_rotator_axisCustomYInput = $step1_tools_rotator_axisCustomInputs.filter('.tools-rotator-customAxisInputY'),
 					$step1_coords = $controls.find('.coords-wrapper .coords-X, .coords-wrapper .coords-Y'),
 					$step1_coordsX = $step1_coords.filter('.coords-X'),
 					$step1_coordsY = $step1_coords.filter('.coords-Y'),
 					$step1_radios = $controls.find("input[type=radio][name=step1-radio]"),
+					$step1_radiosPolygon = $step1_radios.filter('#step1-radio1'),
 					$step1_radiosSpiral = $step1_radios.filter('#step1-radio2'),
 					$step2 = $controls.find('.step2'),
 					$step2_sections = $step2.find('.step2-section'),
@@ -662,23 +743,24 @@
 						y: [0, 1000],
 						edges: [3, 20],
 						radius: [1, 1000],
-						ratio: [0.001, 0.9999]
+						ratio: [0.001, 0.9999],
+						rotationAngle: [0.001, 1000*2*pi]
 					},
 					isValid = {
 						polygon: function () {
-							var isValid = true,
+							var isValid = $step1_radiosPolygon.is(':checked'),
 								edges = $step2_polygon_edges.val(),
 								radius = $step2_polygon_radius.val();
 
 							if (!edges.match(regi.onlyNumbers) || +edges < ranges.edges[0] || +edges > ranges.edges[1]) {
 								isValid = false;
-								edges && $step2_polygon_edges.addClass('bad');
+								+edges && $step2_polygon_edges.addClass('bad');
 							} else {
 								$step2_polygon_edges.removeClass('bad');
 							}
 							if (!radius.match(regi.onlyNumbers) || +radius < ranges.radius[0] || +radius > ranges.radius[1]) {
 								isValid = false;
-								radius && $step2_polygon_radius.addClass('bad');
+								+radius && $step2_polygon_radius.addClass('bad');
 							} else {
 								$step2_polygon_radius.removeClass('bad');
 							}
@@ -686,20 +768,21 @@
 							return isValid;
 						},
 						spiral: function () {
-							var isValid = false,
+							var isValid = $step1_radiosSpiral.is(':checked'),
 								customRatio = $step2_spiral_ratioCustom.val();
 
-							if ($step2_spiral_radiosGolden.is(':checked')) {
-								isValid = true;
-							} else if ($step2_spiral_radiosCustom.is(':checked')) {
-								if (!customRatio.match(regi.onlyNumbersWithFractions) || +customRatio < ranges.ratio[0] || +customRatio > ranges.ratio[1]) {
-									customRatio && $step2_spiral_ratioCustom.addClass('bad');
-								} else {
-									isValid = true;
-									customRatio && $step2_spiral_ratioCustom.removeClass('bad');
+							if (isValid) {
+								if ($step2_spiral_radiosCustom.is(':checked')) { // Second
+									if (!customRatio.match(regi.onlyNumbersWithFractions) || +customRatio < ranges.ratio[0] || +customRatio > ranges.ratio[1]) {
+										isValid = false;
+										+customRatio && $step2_spiral_ratioCustom.addClass('bad');
+									} else {
+										+customRatio && $step2_spiral_ratioCustom.removeClass('bad');
+									}
+								} else if (!$step2_spiral_radiosGolden.is(':checked')) { // Neither
+									isValid = false;
 								}
 							}
-
 							return isValid;
 						},
 						coords: function () {
@@ -707,19 +790,73 @@
 
 							if (!x.match(regi.onlyNumbers) || +x < ranges.x[0] || +x > ranges.x[1]) {
 								isValid = false;
-								x && $step1_coordsX.addClass('bad');
+								+x && $step1_coordsX.addClass('bad');
 							} else {
 								$step1_coordsX.removeClass('bad');
 							}
 							if (!y.match(regi.onlyNumbers) || +y < ranges.y[0] || +y > ranges.y[1]) {
 								isValid = false;
-								y && $step1_coordsY.addClass('bad');
+								+y && $step1_coordsY.addClass('bad');
 							} else {
 								$step1_coordsY.removeClass('bad');
 							}
 
 							return isValid;
+						},
+						rotate: function () {
+							var isValid = $step1_tools_rotator_switchCheckbox.is(':checked'),
+								angle = $step1_tools_rotator_angleInput.val(),
+								x = $step1_tools_rotator_axisCustomXInput.val(),
+								y = $step1_tools_rotator_axisCustomYInput.val();
+
+							if (isValid) {
+								if (!angle.match(regi.onlyNumbersWithFractions) || +angle < ranges.rotationAngle[0] || +angle > ranges.rotationAngle[1]) {
+									isValid = false;
+									+angle && $step1_tools_rotator_angleInput.addClass('bad');
+								} else {
+									$step1_tools_rotator_angleInput.removeClass('bad');
+								}
+
+								if ($step1_tools_rotator_axisCustomRadio.is(':checked')) {
+								if (!x.match(regi.onlyNumbers) || +x < ranges.x[0] || +x > ranges.x[1]) {
+									isValid = false;
+									+x && $step1_tools_rotator_axisCustomXInput.addClass('bad');
+								} else {
+									$step1_tools_rotator_axisCustomXInput.removeClass('bad');
+								}
+
+								if (!y.match(regi.onlyNumbers) || +y < ranges.y[0] || +y > ranges.y[1]) {
+									isValid = false;
+									+y && $step1_tools_rotator_axisCustomYInput.addClass('bad');
+								} else {
+									$step1_tools_rotator_axisCustomYInput.removeClass('bad');
+								}
+							}
+							}
+							return isValid;
 						}
+					},
+					getAxisPoint = function (shapeMidpointX, shapeMidpointY) {
+						var result;
+
+						if ($step1_tools_rotator_axisCustomRadio.is(':checked')) {
+							result = {
+								x: +$step1_tools_rotator_axisCustomXInput.val(),
+								y: +$step1_tools_rotator_axisCustomYInput.val()
+							}
+						} else if ($step1_tools_rotator_axisCMidpointRadio.is(':checked')) {
+							result = {
+								x: $canvas.width()/2,
+								y: $canvas.height()/2
+							}
+						} else if ($step1_tools_rotator_axisSMidpointRadio.is(':checked')) {
+							result = {
+								x: shapeMidpointX || null,
+								y: shapeMidpointY || null
+							}
+						}
+
+						return result;
 					},
 					upDown = function (e, range, customIncrement) {
 							var inc = customIncrement || 1,
@@ -742,7 +879,7 @@
 						for (var i=0; i<shapeStack.length; i++) {
 							shapeStack[i]();
 						}
-						if ($step1_tools_markers.is(':checked')) {
+						if ($step1_tools_markersSwitch.is(':checked')) {
 							mainCanvas.markers();
 						}
 					},
@@ -750,7 +887,7 @@
 						$step1_tools_pushToStack.val('Save to Stack (' + shapeStack.length + ')');
 					},
 					generatePolygon = function (e, store) {
-						var edges, radius, x, y;
+						var edges, radius, x, y, rotationParams = {};
 						setTimeout(function () {
 							if (isValid.coords() && isValid.polygon()) {
 								edges = +$step2_polygon_edges.val();
@@ -758,27 +895,31 @@
 								x = +$step1_coordsX.val();
 								y = +$step1_coordsY.val();
 
+								if (isValid.rotate()) { // Rotate!
+									rotationParams = {
+										rotate: true,
+										theta: +$step1_tools_rotator_angleInput.val(),
+										axisPoint: getAxisPoint(x, y)
+									}
+								}
+
 								if (store) {
-									shapeStack.push(mainCanvas.polygon.bind(mainCanvas, x, y, radius, edges));
-									exportShapeStack.push(['polygon', x, y, radius, edges]);
+									shapeStack.push(mainCanvas.polygon.bind(mainCanvas, x, y, radius, edges, rotationParams));
+									exportShapeStack.push(['polygon', x, y, radius, edges, rotationParams]);
 									localStorage.setItem('stack', JSON.stringify(exportShapeStack))
 									updateStackIndication();
 								} else {
 									mainCanvas.clear();
 									drawStack();
-									mainCanvas.polygon(x, y, radius, edges);
+									mainCanvas.polygon(x, y, radius, edges, rotationParams);
 								}
 							}
 						}, 0)
 					},
 					storePolygon = generatePolygon.bind(null, null, true),
 					generateSpiral = function (e, store) {
-						var ratio, x, y;
+						var ratio, x, y, rotationParams = {};
 						setTimeout(function () {
-							if (e && $(e.target).is($step2_spiral_ratioCustom)) {
-								upDown.apply(e.target, [e].concat(ranges.ratio));
-							}
-
 							if (isValid.coords() && isValid.spiral()) {
 								if ($step2_spiral_radiosCustom.is(':checked')) {
 									ratio = +$step2_spiral_ratioCustom.val();
@@ -786,15 +927,23 @@
 								x = +$step1_coordsX.val();
 								y = +$step1_coordsY.val();
 
+								if (isValid.rotate()) { // Rotate!
+									rotationParams = {
+										rotate: true,
+										theta: +$step1_tools_rotator_angleInput.val(),
+										axisPoint: getAxisPoint(null)
+									}
+								}
+
 								if (store) {
-									shapeStack.push(mainCanvas.spiral.bind(mainCanvas, x, y, ratio));
-									exportShapeStack.push(['spiral', x, y, ratio]);
+									shapeStack.push(mainCanvas.spiral.bind(mainCanvas, x, y, ratio, rotationParams));
+									exportShapeStack.push(['spiral', x, y, ratio, rotationParams]);
 									localStorage.setItem('stack', JSON.stringify(exportShapeStack))
 									updateStackIndication();
 								} else {
 									mainCanvas.clear();
 									drawStack();
-									mainCanvas.spiral(x, y, ratio);
+									mainCanvas.spiral(x, y, ratio, rotationParams);
 								}
 							}
 						}, 0)
@@ -814,6 +963,26 @@
 						return function (e) {
 							upDown.call(e.target, e, range, customInc);
 						}
+					},
+					saveCurrentToStack = function () {
+						var selected = $step1_radios.filter(':checked').val(),
+								actions = {
+									"step1-radio1": storePolygon,
+									"step1-radio2": storeSpiral
+								}
+
+						if (actions[selected]) {
+							actions[selected]();
+						}
+					},
+					importStack = function (stack) {
+						exportShapeStack = JSON.parse(stack);
+						functionifyExportStack();
+						updateStackIndication();
+						drawStack();
+					},
+					toggleRotationView = function () {
+						$step1_tools_rotator_section._toggle($step1_tools_rotator_switchCheckbox.is(':checked'));
 					};
 
 				// Step 1 //
@@ -829,43 +998,50 @@
 					actions[this.value]._show.call(actions[this.value]);
 				});
 				// Bind up/downs
-				$step1_coords.on("keydown", makeUpDownFunction(ranges.x, 10)); // Use x's for both, separatable tho
+				$step1_coords
+						.add($step1_tools_rotator_axisCustomInputs)
+							.on("keydown", makeUpDownFunction(ranges.x, 10)); // Use x's for both, separatable tho
 				$step2_polygon_edges.on("keydown", makeUpDownFunction(ranges.edges));
 				$step2_polygon_radius.on("keydown", makeUpDownFunction(ranges.radius, 10));
 				$step2_spiral_ratioCustom.on("keydown", makeUpDownFunction(ranges.ratio, 0.05));
+				$step1_tools_rotator_angleInput.on("keydown", makeUpDownFunction(ranges.rotationAngle, 0.1));
+
 
 				// Step 2 //
 				// Polygon Edges and Radius
 				$step2_polygon_inputs.on("keydown", generatePolygon);
 
 				// Golden or Custom Radios and Custom input
-				$step2_spiral_radios.change(generateSpiral);
+				$step2_spiral_radios.add($step1_tools_rotator_switchCheckbox).change(generateSpiral);
 				$step2_spiral_ratioCustom.on("keydown", generateSpiral);
 
-				// X and Y to also generate main shapes
+				// Main shapes
 				$step1_coords
-						.on("keydown", generatePolygon)
-						.on("keydown", generateSpiral);
+						.add($step1_tools_rotator_angleInput)
+						.add($step1_tools_rotator_axisCustomInputs)
+							.on("keydown", generatePolygon)
+							.on("keydown", generateSpiral);
 
+				$step1_tools_rotator_axisRadios
+						.change(generatePolygon)
+						.change(generateSpiral)
 
-				$step1_tools_markers.change(function () {
+				$step1_tools_rotator_switchCheckbox
+						.change(toggleRotationView)
+						.change(generatePolygon);
+
+				$step1_tools_markersSwitch.change(function () {
 					if ($(this).is(':checked')) {
 						mainCanvas.markers();
 					} else {
 						mainCanvas.clear();
+						drawStack();
+						generatePolygon();
+						generateSpiral();
 					}
 				})
-				$step1_tools_pushToStack.click(function () {
-					var selected = $step1_radios.filter(':checked').val(),
-						actions = {
-							"step1-radio1": storePolygon,
-							"step1-radio2": storeSpiral
-						}
+				$step1_tools_pushToStack.click(saveCurrentToStack);
 
-					if (actions[selected]) {
-						actions[selected]();
-					}
-				});
 				$step1_tools_clearStack.click(function () {
 					exportShapeStack = [];
 					shapeStack = [];
@@ -875,11 +1051,29 @@
 				})
 
 				if (lsStack) {
-					exportShapeStack = JSON.parse(lsStack);
-					functionifyExportStack();
-					updateStackIndication();
-					drawStack();
+					importStack(lsStack);
 				}
+
+				$(document).keypress(function (e) {
+					if (e.keyCode === 83 && e.shiftKey) { // S Push to Stack
+						e.preventDefault();
+						saveCurrentToStack();
+					}
+
+					if (e.keyCode === 73 && e.shiftKey) { // I Import
+						var input = prompt('Please insert JSON instructions');
+						try {
+							importStack(input);
+						} catch (err) {
+							alert('Corrupt JSON, import failed');
+						}
+					}
+
+					if (e.keyCode === 69 && e.shiftKey) { // E Export
+						$step1_tools_exportOutputInput.html(JSON.stringify(exportShapeStack))
+						$step1_tools_exportWrapper.fadeIn(800);
+					}
+				})
 
 				this.getJSON = function () {
 					console.log(JSON.stringify(exportShapeStack));
@@ -894,25 +1088,9 @@
 		$.fn._show = function () {
 			$(this).removeClass('hidden');
 		}
-
-        //canvas1.drawMetatron();
-		//mainCanvas.layouts.patterns.spirals(1);
-//        canvas01.layouts.patterns.spirals(2);
-//        canvas02.layouts.patterns.spirals(3);
-//        canvas03.layouts.patterns.spirals(4);
-//        canvas04.layouts.patterns.spirals(5);
-//        canvas05.layouts.patterns.spirals(15);
-//		canvas021.layouts.patterns.spirals(2, 0.2);
-//		canvas022.layouts.patterns.spirals(3, 0.2);
-//		canvas023.layouts.patterns.spirals(4, 0.2);
-//		canvas024.layouts.patterns.spirals(5, 0.2);
-//		canvas025.layouts.patterns.spirals(15, 0.2);
-//        canvas00.layouts.patterns.spiral(0.89);
-//        canvas1.layouts.polygons();
-//        canvas11.layouts.polygons(true);
-//		canvas2.layouts.patterns.metatron();
-//		canvas3.layouts.patterns.flowerOfLife();
-//		canvas4.layouts.patterns.tiledHex();
+		$.fn._toggle = function (flag) {
+			flag ? this._show() : this._hide();
+		}
 
     </script>
 </body>
