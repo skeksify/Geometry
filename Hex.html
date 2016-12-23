@@ -8,6 +8,31 @@
 		input[type=radio] { vertical-align: text-bottom; }
 		input[type=checkbox] { vertical-align: sub; }
 		label { line-height: 24px; }
+		button, input[type=button] {
+			margin: 5px;
+			color: white;
+			font-size: 11px;
+			cursor: pointer;
+			padding: 4px 7px;
+			border: 1px solid;
+			border-radius: 3px;
+			background: #2b2b2c;
+		}
+		.hidden {
+			display: none;
+		}
+
+		.bad {
+			box-shadow: 0px 0px 7px 3px #e00f0f;
+		}
+
+		.flexHor {
+			display: flex;
+			flex-direction: row;
+		}
+
+		.flex1 { flex: 1; }
+		.flex2 { flex: 2; }
 		body {
 			color: #EEE;
 			font-size: 13px;
@@ -38,6 +63,11 @@
 			position: absolute;
 			border-radius: 3px;
 			border: 1px solid white;
+		}
+
+		.ui-stack {
+			right: 60px;
+			left: initial;
 		}
 
 		.ui-controls-wrapper {
@@ -90,22 +120,16 @@
 			margin: 0 20px;
 		}
 
-		.hidden {
-			display: none;
+		button.stack-delete {
+			width: 16px;
+			height: 16px;
+			padding: 0px;
+			margin: 0 10px;
+			font-weight: bold;
 		}
 
-		.bad {
-			box-shadow: 0px 0px 7px 3px #e00f0f;
+		.ui-stack-saveToLS {
 		}
-
-		.flexHor {
-			display: flex;
-			flex-direction: row;
-		}
-
-		.flex1 { flex: 1; }
-		.flex2 { flex: 2; }
-
     </style>
 </head>
 <body>
@@ -182,7 +206,6 @@
 						<input type="checkbox" id="tools-markers" /> Markers
 					</label>
 					<input type="button" class="tools-pushToStack" value="Save to Stack" />
-					<input type="button" class="tools-clearStack" value="Clear Stack" />
 				</div>
 				<div class="rotation-wrapper textAlignLeft">
 					<div class="rotation-inner-wrapper">
@@ -223,9 +246,22 @@
 						</div>
 					</div>
 				</div>
-				<div class="export-wrapper hidden">
-					<textarea id="export-output"></textarea>
-				</div>
+			</div>
+		</div>
+	</div>
+	<div class="ui-wrapper ui-stack">
+		<div class="ui-title"><h3>Stack Manager</h3></div>
+		<div class="ui-stack-wrapper" id="ui-stack-wrapper">
+			<div class="ui-stack-empty">Stack is empty</div>
+			<div class="ui-stack-block-controls hidden">
+				<button class="ui-stack-saveToLS">Save to LocalStorage</button>
+				<input type="button" class="tools-clearStack" value="Clear Stack" />
+			</div>
+			<div class="export-wrapper hidden">
+				<textarea id="export-output"></textarea>
+			</div>
+			<div class="ui-stack-block-wrapper hidden">
+				<div class="ui-stack-block hidden"></div>
 			</div>
 		</div>
 	</div>
@@ -706,11 +742,17 @@
 					lsStack = localStorage.getItem('stack'),
 					$canvas = $('#canvas0'),
 					$controls = $('#ui-controls-wrapper'),
+					$stack = $('#ui-stack-wrapper'),
+					$stack_empty = $stack.find('.ui-stack-empty'),
+					$stack_block_controls = $stack.find('.ui-stack-block-controls'),
+					$stack_block_controls_saveToLS = $stack_block_controls.find('.ui-stack-saveToLS'),
+					$stack_block_wrapper = $stack.find('.ui-stack-block-wrapper'),
+					$stack_block = $stack_block_wrapper.find('.ui-stack-block').remove(),
+					$stack_clearStack = $stack.find('.tools-clearStack'),
+					$stack_exportWrapper = $stack.find('.export-wrapper'),
+					$stack_exportOutputInput = $stack_exportWrapper.find('textarea'),
 					$step1_tools = $controls.find('.tools-wrapper'),
-					$step1_tools_exportWrapper = $step1_tools.find('.export-wrapper'),
-					$step1_tools_exportOutputInput = $step1_tools_exportWrapper.find('textarea'),
 					$step1_tools_pushToStack = $step1_tools.find('.tools-pushToStack'),
-					$step1_tools_clearStack = $step1_tools.find('.tools-clearStack'),
 					$step1_tools_markersSwitch = $step1_tools.find('#tools-markers'),
 					$step1_tools_rotator_switchCheckbox = $step1_tools.find('#tools-rotator-checkbox'),
 					$step1_tools_rotator_section = $step1_tools.find('.tools-rotator-angle, .rotation-axis-wrapper'),
@@ -738,13 +780,14 @@
 					$step2_spiral_radiosGolden = $step2_spiral_radios.filter('#spiral-ratio-radio1'),
 					$step2_spiral_radiosCustom = $step2_spiral_radios.filter('#spiral-ratio-radio2'),
 					$step2_spiral_ratioCustom = $step2_spiral_ratio.find('.spiral-ratio-custom'),
+					polygonNames = ['Nullagon', 'Monogon', 'Digon', 'Triangle', 'Quadrilateral', 'Pentagon', 'Hexagon', 'Heptagon', 'Octagon', 'Nonagon', 'Decagon', 'Hendecagon', 'Dodecagon'],
 					ranges = {
 						x: [0, 1000],
 						y: [0, 1000],
 						edges: [3, 20],
 						radius: [1, 1000],
 						ratio: [0.001, 0.9999],
-						rotationAngle: [0.001, 1000*2*pi]
+						rotationAngle: [0, 1000*2*pi]
 					},
 					isValid = {
 						polygon: function () {
@@ -758,7 +801,7 @@
 							} else {
 								$step2_polygon_edges.removeClass('bad');
 							}
-							if (!radius.match(regi.onlyNumbers) || +radius < ranges.radius[0] || +radius > ranges.radius[1]) {
+							if (!radius.match(regi.onlyNumbersWithFractions) || +radius < ranges.radius[0] || +radius > ranges.radius[1]) {
 								isValid = false;
 								+radius && $step2_polygon_radius.addClass('bad');
 							} else {
@@ -859,22 +902,72 @@
 						return result;
 					},
 					upDown = function (e, range, customIncrement) {
-							var inc = customIncrement || 1,
-								min = range[0], max = range[1];
-							// UP and DOWN arrows
-							switch (e.keyCode) {
-								case 38:
-									if (this.value.match(regi.onlyNumbersWithFractions) && (+this.value + inc) <= max) {
-										this.value = roundLight(+this.value + inc);
-									}
-									break;
-								case 40:
-									if (this.value.match(regi.onlyNumbersWithFractions) && (+this.value - inc) >= min) {
-										this.value = roundLight(+this.value - inc);
-									}
-									break;
-							}
-						},
+						var inc = customIncrement || 1,
+							min = range[0], max = range[1];
+						// UP and DOWN arrows
+						switch (e.keyCode) {
+							case 38:
+								if (this.value.match(regi.onlyNumbersWithFractions) && (+this.value + inc) <= max) {
+									this.value = roundLight(+this.value + inc);
+								}
+
+								if ((+this.value + inc) > max) { // Up above Max (Will only fire if previous didn't)
+									this.value = max;
+								}
+								break;
+							case 40:
+								if (this.value.match(regi.onlyNumbersWithFractions) && (+this.value - inc) >= min) {
+									this.value = roundLight(+this.value - inc);
+								}
+								if ((+this.value - inc) < min) { // Down below Min
+									this.value = min;
+								}
+								break;
+						}
+					},
+					makeBlock = function (shapeIndex) {
+						var content, result,
+							shapeArr = exportShapeStack[shapeIndex],
+							rotationObj;
+
+						switch (shapeArr[0]) {
+							case 'spiral':
+								content = 'Spiral';
+								content += ' [' + (shapeArr[3] === null ? 'GR' : shapeArr[3]) + ']';
+								content += ' (' + shapeArr[1] + ',' + shapeArr[2] + ')';
+								rotationObj = shapeArr[4];
+								break;
+							case 'polygon':
+								content = (polygonNames[shapeArr[4]] || 'Polygon') + ' (' + shapeArr[4] + ')';
+								content += ' R: ' + shapeArr[3];
+								rotationObj = shapeArr[5];
+								break;
+						}
+
+						if (rotationObj.rotate) {
+							content += ' <' + rotationObj.theta + ': ';
+							content += (rotationObj.axisPoint.x === null || rotationObj.axisPoint.y === null ? 'MidPoint' : (rotationObj.axisPoint.x + ', ' + rotationObj.axisPoint.y)) + '>';
+						}
+
+						content += ' (' + shapeArr[1] + ',' + shapeArr[2] + ')';
+
+						result = $stack_block.clone()._show().html(content);
+						result.append($('<button/>')
+								.addClass('stack-delete')
+								.text('X')
+								.click(deleteFromStack.bind(null, shapeIndex))
+						)
+
+						return result;
+					},
+					deleteFromStack = function (i) {
+						shapeStack.splice(i, 1);
+						exportShapeStack.splice(i, 1);
+						updateStackIndication();
+						mainCanvas.clear();
+						drawStack();
+						$stack_block_controls_saveToLS.text('Save to LocalStorage *');
+					},
 					drawStack = function () {
 						for (var i=0; i<shapeStack.length; i++) {
 							shapeStack[i]();
@@ -884,11 +977,26 @@
 						}
 					},
 					updateStackIndication = function () {
-						$step1_tools_pushToStack.val('Save to Stack (' + shapeStack.length + ')');
+						var index;
+
+						$step1_tools_pushToStack.val('Save to Stack (' + exportShapeStack.length + ')');
+
+						if (!exportShapeStack.length) {
+							$stack_empty._show();
+							$stack_block_wrapper._hide();
+						} else {
+							$stack_empty._hide();
+							$stack_block_wrapper.html('');
+							for (index=0; index<exportShapeStack.length; index++) {
+								$stack_block_wrapper.append(makeBlock(index));
+							}
+							$stack_block_wrapper._show();
+							$stack_block_controls._show();
+						}
 					},
 					generatePolygon = function (e, store) {
 						var edges, radius, x, y, rotationParams = {};
-						setTimeout(function () {
+						setTimeout(function () { // To catch first value
 							if (isValid.coords() && isValid.polygon()) {
 								edges = +$step2_polygon_edges.val();
 								radius = +$step2_polygon_radius.val();
@@ -906,7 +1014,7 @@
 								if (store) {
 									shapeStack.push(mainCanvas.polygon.bind(mainCanvas, x, y, radius, edges, rotationParams));
 									exportShapeStack.push(['polygon', x, y, radius, edges, rotationParams]);
-									localStorage.setItem('stack', JSON.stringify(exportShapeStack))
+									saveCurrentStackToLocalStorage();
 									updateStackIndication();
 								} else {
 									mainCanvas.clear();
@@ -914,11 +1022,11 @@
 									mainCanvas.polygon(x, y, radius, edges, rotationParams);
 								}
 							}
-						}, 0)
+						}, 10)
 					},
 					storePolygon = generatePolygon.bind(null, null, true),
 					generateSpiral = function (e, store) {
-						var ratio, x, y, rotationParams = {};
+						var ratio = null, x, y, rotationParams = {};
 						setTimeout(function () {
 							if (isValid.coords() && isValid.spiral()) {
 								if ($step2_spiral_radiosCustom.is(':checked')) {
@@ -938,7 +1046,7 @@
 								if (store) {
 									shapeStack.push(mainCanvas.spiral.bind(mainCanvas, x, y, ratio, rotationParams));
 									exportShapeStack.push(['spiral', x, y, ratio, rotationParams]);
-									localStorage.setItem('stack', JSON.stringify(exportShapeStack))
+									saveCurrentStackToLocalStorage();
 									updateStackIndication();
 								} else {
 									mainCanvas.clear();
@@ -975,6 +1083,10 @@
 							actions[selected]();
 						}
 					},
+					saveCurrentStackToLocalStorage = function () {
+						localStorage.setItem('stack', JSON.stringify(exportShapeStack));
+						$stack_block_controls_saveToLS.text('Save to LocalStorage');
+					},
 					importStack = function (stack) {
 						exportShapeStack = JSON.parse(stack);
 						functionifyExportStack();
@@ -983,7 +1095,23 @@
 					},
 					toggleRotationView = function () {
 						$step1_tools_rotator_section._toggle($step1_tools_rotator_switchCheckbox.is(':checked'));
+					},
+					enhanceJQuery = function () {
+						$.fn._hide = function () {
+							$(this).addClass('hidden');
+							return $(this);
+						}
+						$.fn._show = function () {
+							$(this).removeClass('hidden');
+							return $(this);
+						}
+						$.fn._toggle = function (flag) {
+							flag ? this._show() : this._hide();
+							return $(this);
+						}
 					};
+
+				enhanceJQuery();
 
 				// Step 1 //
 				// First step radios
@@ -1042,14 +1170,17 @@
 				})
 				$step1_tools_pushToStack.click(saveCurrentToStack);
 
-				$step1_tools_clearStack.click(function () {
+				$stack_clearStack.click(function () {
 					exportShapeStack = [];
 					shapeStack = [];
-					localStorage.setItem('stack', '');
 					updateStackIndication();
 					mainCanvas.clear();
+					$stack_block_controls_saveToLS.text('Save to LocalStorage *');
 				})
 
+				$stack_block_controls_saveToLS.click(saveCurrentStackToLocalStorage);
+
+				// Last action, beginning of scope!
 				if (lsStack) {
 					importStack(lsStack);
 				}
@@ -1070,8 +1201,8 @@
 					}
 
 					if (e.keyCode === 69 && e.shiftKey) { // E Export
-						$step1_tools_exportOutputInput.html(JSON.stringify(exportShapeStack))
-						$step1_tools_exportWrapper.fadeIn(800);
+						$stack_exportOutputInput.html(JSON.stringify(exportShapeStack))
+						$stack_exportWrapper.fadeIn(800);
 					}
 				})
 
@@ -1081,16 +1212,6 @@
 			},
 			mainCanvas = new geometryMaker("canvas0"),
 			uiInstance = new ui();
-
-		$.fn._hide = function () {
-			$(this).addClass('hidden');
-		}
-		$.fn._show = function () {
-			$(this).removeClass('hidden');
-		}
-		$.fn._toggle = function (flag) {
-			flag ? this._show() : this._hide();
-		}
 
     </script>
 </body>
