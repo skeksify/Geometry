@@ -215,6 +215,9 @@
 							</label>
 							<span class="tools-rotator-angle hidden">
 								Angle: <input type="text" class="rotator-angle number-input" value="0" />
+								<label for="rotator-angle-degreeMode">
+									<input type="checkbox" id="rotator-angle-degreeMode" /> Degrees
+								</label>
 							</span>
 						</div>
 						<div class="rotation-axis-wrapper hidden">
@@ -757,6 +760,7 @@
 					$step1_tools_rotator_switchCheckbox = $step1_tools.find('#tools-rotator-checkbox'),
 					$step1_tools_rotator_section = $step1_tools.find('.tools-rotator-angle, .rotation-axis-wrapper'),
 					$step1_tools_rotator_angleInput = $step1_tools.find('.rotator-angle'),
+					$step1_tools_rotator_angleModeCheckbox = $step1_tools.find('#rotator-angle-degreeMode'),
 					$step1_tools_rotator_axisRadios = $step1_tools.find('.tools-rotator-mode-radios'),
 					$step1_tools_rotator_axisCMidpointRadio = $step1_tools_rotator_axisRadios.filter('#tools-rotator-axisCMid'),
 					$step1_tools_rotator_axisSMidpointRadio = $step1_tools_rotator_axisRadios.filter('#tools-rotator-axisSMid'),
@@ -995,7 +999,7 @@
 						}
 					},
 					generatePolygon = function (e, store) {
-						var edges, radius, x, y, rotationParams = {};
+						var edges, radius, x, y, rotationParams = {}, degreesModifier = $step1_tools_rotator_angleModeCheckbox.is(':checked') ? pi/180 : 1;
 						setTimeout(function () { // To catch first value
 							if (isValid.coords() && isValid.polygon()) {
 								edges = +$step2_polygon_edges.val();
@@ -1006,7 +1010,7 @@
 								if (isValid.rotate()) { // Rotate!
 									rotationParams = {
 										rotate: true,
-										theta: +$step1_tools_rotator_angleInput.val(),
+										theta: +$step1_tools_rotator_angleInput.val() * degreesModifier,
 										axisPoint: getAxisPoint(x, y)
 									}
 								}
@@ -1026,7 +1030,7 @@
 					},
 					storePolygon = generatePolygon.bind(null, null, true),
 					generateSpiral = function (e, store) {
-						var ratio = null, x, y, rotationParams = {};
+						var ratio = null, x, y, rotationParams = {}, degreesModifier = $step1_tools_rotator_angleModeCheckbox.is(':checked') ? pi/180 : 1;
 						setTimeout(function () {
 							if (isValid.coords() && isValid.spiral()) {
 								if ($step2_spiral_radiosCustom.is(':checked')) {
@@ -1038,7 +1042,7 @@
 								if (isValid.rotate()) { // Rotate!
 									rotationParams = {
 										rotate: true,
-										theta: +$step1_tools_rotator_angleInput.val(),
+										theta: +$step1_tools_rotator_angleInput.val() * degreesModifier,
 										axisPoint: getAxisPoint(null)
 									}
 								}
@@ -1151,8 +1155,9 @@
 							.on("keydown", generateSpiral);
 
 				$step1_tools_rotator_axisRadios
-						.change(generatePolygon)
-						.change(generateSpiral)
+						.add($step1_tools_rotator_angleModeCheckbox)
+							.change(generatePolygon)
+							.change(generateSpiral)
 
 				$step1_tools_rotator_switchCheckbox
 						.change(toggleRotationView)
