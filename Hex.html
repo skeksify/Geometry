@@ -7,6 +7,12 @@
         label, input[type=checkbox], input[type=radio] { cursor: pointer; }
 		input[type=radio] { vertical-align: text-bottom; }
 		input[type=checkbox] { vertical-align: sub; }
+		input[type=text] {
+			color: white;
+			padding: 2px 0;
+			border: 1px solid;
+			background: #212121;
+		}
 		label { line-height: 24px; }
 		button, input[type=button] {
 			margin: 5px;
@@ -788,7 +794,7 @@
 					ranges = {
 						x: [0, 1000],
 						y: [0, 1000],
-						edges: [3, 20],
+						edges: [3, 100],
 						radius: [1, 1000],
 						ratio: [0.001, 0.9999],
 						rotationAngle: [0, 1000*2*pi]
@@ -837,13 +843,13 @@
 
 							if (!x.match(regi.onlyNumbers) || +x < ranges.x[0] || +x > ranges.x[1]) {
 								isValid = false;
-								+x && $step1_coordsX.addClass('bad');
+								x && $step1_coordsX.addClass('bad');
 							} else {
 								$step1_coordsX.removeClass('bad');
 							}
 							if (!y.match(regi.onlyNumbers) || +y < ranges.y[0] || +y > ranges.y[1]) {
 								isValid = false;
-								+y && $step1_coordsY.addClass('bad');
+								y && $step1_coordsY.addClass('bad');
 							} else {
 								$step1_coordsY.removeClass('bad');
 							}
