@@ -49,9 +49,11 @@
         }
 
 		.verTop { vertical-align: top; }
+		.inlineBlock { display: inline-block;  }
 		.marginTopS { margin-top: 4px; }
 		.lineHeightM { line-height: 25px; }
 		.textAlignLeft { text-align: left; }
+		.textAlignRight { text-align: right; }
 
         .playable-canvas {
 			border: 1px solid white;
@@ -74,6 +76,10 @@
 		.ui-stack {
 			right: 60px;
 			left: initial;
+		}
+		.ui-stack.wide {
+			right: 3px;
+			width: 512px;
 		}
 
 		.ui-controls-wrapper {
@@ -98,7 +104,9 @@
 			padding: 0 0 12px;
 		}
 
-		.rotation-inner-wrapper {
+		.rotation-inner-wrapper,
+		.iteration-inner-wrapper,
+		.animation-inner-wrapper {
 			padding-left: 23px;
 		}
 
@@ -132,6 +140,10 @@
 			padding: 0px;
 			margin: 0 10px;
 			font-weight: bold;
+		}
+
+		.floatingCaption {
+			width: 120px;
 		}
 
 		.ui-stack-saveToLS {
@@ -178,7 +190,7 @@
 			<div class="step2">
 				<div class="step2-polygon step2-section hidden">
 					<div class="polygon-edges-wrapper">
-						Number of edges: <input type="text" class="polygon-edges number-input" />
+						Number of edges: <input type="text" class="polygon-edges number-input" value="6" />
 					</div>
 					<div class="polygon-radius-wrapper">
 						Radius: <input type="text" class="polygon-radius number-input" value="200" />
@@ -255,6 +267,60 @@
 						</div>
 					</div>
 				</div>
+				<div class="iteration-wrapper textAlignLeft">
+					<div class="iteration-inner-wrapper">
+						<div>
+							<div class="floatingCaption verTop inlineBlock">
+								<label for="iterator-checkbox">
+									<input type="checkbox" id="iterator-checkbox" /> Iterate
+								</label>
+							</div>
+							<span class="iterator-section hidden textAlignRight">
+								<ul>
+									<li>
+										Limit: <input type="text" class="iterator-limit number-input" value="3" />
+									</li>
+									<li>
+										Angle step: <input type="text" class="iterator-angle number-input" value="0" />
+										<label for="iterator-angle-degreeMode" class="hidden">
+											<input type="checkbox" id="iterator-angle-degreeMode" /> Degrees
+										</label>
+									</li>
+									<li>
+										Radius step: <input type="text" class="iterator-radius number-input" value="0" />
+									</li>
+								</ul>
+							</span>
+						</div>
+					</div>
+				</div>
+				<div class="animation-wrapper textAlignLeft">
+					<div class="animation-inner-wrapper">
+						<div>
+							<div class="floatingCaption verTop inlineBlock">
+								<label for="animator-checkbox">
+									<input type="checkbox" id="animator-checkbox" /> Animate
+								</label>
+							</div>
+							<span class="animator-section hidden textAlignRight">
+								<ul>
+									<li>
+										Interval: <input type="text" class="animator-interval number-input" value="10" />
+									</li>
+									<li>
+										Angle step: <input type="text" class="animator-angle number-input" value="0.004" />
+										<label for="animator-angle-degreeMode" class="hidden">
+											<input type="checkbox" id="animator-angle-degreeMode" /> Degrees
+										</label>
+									</li>
+									<li>
+										Radius step: <input type="text" class="animator-radius number-input" value="0" />
+									</li>
+								</ul>
+							</span>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -265,6 +331,9 @@
 			<div class="ui-stack-block-controls hidden">
 				<button class="ui-stack-saveToLS">Save to LocalStorage</button>
 				<input type="button" class="tools-clearStack" value="Clear Stack" />
+				<br/>
+				<button class="ui-stack-startAnimations">Start Animations</button>
+				<button class="ui-stack-stopAnimations">Stop Animations</button>
 			</div>
 			<div class="export-wrapper hidden">
 				<textarea id="export-output"></textarea>
@@ -399,14 +468,24 @@
 
 					drawSpiral(spiral);
 				},
-				drawCustomPolygon = function (c1, c2, r, edges, rotation) {
-					var polygon = makeGenericPolygon(c1, c2, r, edges);
+				drawCustomPolygon = function (c1, c2, r, edges, rotation, iteration) {
+					var i, polygon,
+						iterate = iteration.iterate,
+						limit = iterate ? iteration.limit : 1,
+						theta = rotation.theta;
 
-					if (rotation.rotate) {
-						polygon = rotateSet(polygon, rotation.axisPoint, rotation.theta);
+					for (i=0; i<limit; i++) {
+						polygon = makeGenericPolygon(c1, c2, r, edges);
+						if (rotation.rotate) {
+							polygon = rotateSet(polygon, rotation.axisPoint, theta);
+						}
+						drawPolygon(polygon);
+						if (iterate) {
+							r += iteration.radius;
+							theta += iteration.angle;
+						}
 					}
-
-					drawPolygon(polygon);
+					iterate && $('.ui-stack').addClass('wide');
 				},
 				drawSpiral = function (set) {
 					dotSet(set, true, true);
@@ -416,11 +495,11 @@
 
 					for(i=0; i<setArr.length; i++) {
 						drawCircle(
-								setArr[i].x,
-								setArr[i].y,
-								byRad ? setArr[i].circleR : 3,
-								partial ? setArr[i].phi1 : null,
-								partial ? setArr[i].phi2 : null
+							setArr[i].x,
+							setArr[i].y,
+							byRad ? setArr[i].circleR : 3,
+							partial ? setArr[i].phi1 : null,
+							partial ? setArr[i].phi2 : null
 						);
 						if (textifyCoords) {
 							ctx.textAlign = "center";
@@ -744,15 +823,22 @@
 			ui = function () {
 				var regi = {
 						onlyNumbers: /^\d+$/,
+						onlyNumbersNeg: /^-?\d+$/,
 						onlyNumbersWithFractions: /^\d+(\.\d+)?$/,
+						onlyNumbersWithFractionsNeg: /^-?\d+(\.\d+)?$/
 					},
 					shapeStack = [],
+					animationShapeStack = [],
+					intervals = [],
 					exportShapeStack = [],
 					lsStack = localStorage.getItem('stack'),
 					$canvas = $('#canvas0'),
 					$controls = $('#ui-controls-wrapper'),
+					$controls_inputs = $controls.find('input[type=text]'),
 					$stack = $('#ui-stack-wrapper'),
 					$stack_empty = $stack.find('.ui-stack-empty'),
+					$stack_startAnimations = $stack.find('.ui-stack-startAnimations'),
+					$stack_stopAnimations = $stack.find('.ui-stack-stopAnimations'),
 					$stack_block_controls = $stack.find('.ui-stack-block-controls'),
 					$stack_block_controls_saveToLS = $stack_block_controls.find('.ui-stack-saveToLS'),
 					$stack_block_wrapper = $stack.find('.ui-stack-block-wrapper'),
@@ -761,6 +847,20 @@
 					$stack_exportWrapper = $stack.find('.export-wrapper'),
 					$stack_exportOutputInput = $stack_exportWrapper.find('textarea'),
 					$step1_tools = $controls.find('.tools-wrapper'),
+					$step1_tools_iterator = $step1_tools.find('.iteration-wrapper'),
+					$step1_tools_iterator_section = $step1_tools_iterator.find('.iterator-section'),
+					$step1_tools_iterator_checkbox = $step1_tools_iterator.find('#iterator-checkbox'),
+					$step1_tools_iterator_inputs = $step1_tools_iterator.find('input[type=text]'),
+					$step1_tools_iterator_limitInput = $step1_tools_iterator_inputs.filter('.iterator-limit'),
+					$step1_tools_iterator_angleInput = $step1_tools_iterator_inputs.filter('.iterator-angle'),
+					$step1_tools_iterator_radiusInput = $step1_tools_iterator_inputs.filter('.iterator-radius'),
+					$step1_tools_animator = $step1_tools.find('.animation-wrapper'),
+					$step1_tools_animator_section = $step1_tools_animator.find('.animator-section'),
+					$step1_tools_animator_checkbox = $step1_tools_animator.find('#animator-checkbox'),
+					$step1_tools_animator_inputs = $step1_tools_animator.find('input[type=text]'),
+					$step1_tools_animator_intervalInput = $step1_tools_animator_inputs.filter('.animator-interval'),
+					$step1_tools_animator_angleInput = $step1_tools_animator_inputs.filter('.animator-angle'),
+					$step1_tools_animator_radiusInput = $step1_tools_animator_inputs.filter('.animator-radius'),
 					$step1_tools_pushToStack = $step1_tools.find('.tools-pushToStack'),
 					$step1_tools_markersSwitch = $step1_tools.find('#tools-markers'),
 					$step1_tools_rotator_switchCheckbox = $step1_tools.find('#tools-rotator-checkbox'),
@@ -797,7 +897,10 @@
 						edges: [3, 100],
 						radius: [1, 1000],
 						ratio: [0.001, 0.9999],
-						rotationAngle: [0, 1000*2*pi]
+						rotationAngle: [0, 1000*2*pi],
+						iterationAngle: [-1000*2*pi, 1000*2*pi],
+						iterationRadius: [-1000, 1000],
+						iterationLimit: [1, 1000]
 					},
 					isValid = {
 						polygon: function () {
@@ -887,8 +990,69 @@
 							}
 							}
 							return isValid;
+						},
+						iterate: function () {
+							var isValid = $step1_tools_iterator_checkbox.is(':checked'),
+									limit = $step1_tools_iterator_limitInput.val(),
+									angle = $step1_tools_iterator_angleInput.val(),
+									radius = $step1_tools_iterator_radiusInput.val();
+
+							if (isValid) {
+								if (!limit.match(regi.onlyNumbers) || +limit < ranges.iterationLimit[0] || +limit > ranges.iterationLimit[1]) {
+									isValid = false;
+									limit && $step1_tools_iterator_limitInput.addClass('bad');
+								} else {
+									$step1_tools_iterator_limitInput.removeClass('bad');
+								}
+
+								if (!angle.match(regi.onlyNumbersWithFractionsNeg) || +angle < ranges.iterationAngle[0] || +angle > ranges.iterationAngle[1]) {
+									isValid = false;
+									angle && $step1_tools_iterator_angleInput.addClass('bad');
+								} else {
+									$step1_tools_iterator_angleInput.removeClass('bad');
+								}
+
+								if (!radius.match(regi.onlyNumbersWithFractionsNeg) || +radius < ranges.iterationRadius[0] || +radius > ranges.iterationRadius[1]) {
+									isValid = false;
+									radius && $step1_tools_iterator_radiusInput.addClass('bad');
+								} else {
+									$step1_tools_iterator_radiusInput.removeClass('bad');
+								}
+							}
+							return isValid;
+						},
+						animate: function () {
+							var isValid = $step1_tools_animator_checkbox.is(':checked'),
+								interval = $step1_tools_animator_intervalInput.val(),
+								angle = $step1_tools_animator_angleInput.val(),
+								radius = $step1_tools_animator_radiusInput.val();
+
+							if (isValid) {
+								if (!interval.match(regi.onlyNumbers) || +interval < ranges.iterationLimit[0] || +interval > ranges.iterationLimit[1]) {
+									isValid = false;
+									interval && $step1_tools_animator_intervalInput.addClass('bad');
+								} else {
+									$step1_tools_animator_intervalInput.removeClass('bad');
+								}
+
+								if (!angle.match(regi.onlyNumbersWithFractionsNeg) || +angle < ranges.iterationAngle[0] || +angle > ranges.iterationAngle[1]) {
+									isValid = false;
+									angle && $step1_tools_animator_angleInput.addClass('bad');
+								} else {
+									$step1_tools_animator_angleInput.removeClass('bad');
+								}
+
+								if (!radius.match(regi.onlyNumbersWithFractionsNeg) || +radius < ranges.iterationRadius[0] || +radius > ranges.iterationRadius[1]) {
+									isValid = false;
+									radius && $step1_tools_animator_radiusInput.addClass('bad');
+								} else {
+									$step1_tools_animator_radiusInput.removeClass('bad');
+								}
+							}
+							return isValid;
 						}
 					},
+					animationIsOn = false,
 					getAxisPoint = function (shapeMidpointX, shapeMidpointY) {
 						var result;
 
@@ -938,7 +1102,7 @@
 					makeBlock = function (shapeIndex) {
 						var content, result,
 							shapeArr = exportShapeStack[shapeIndex],
-							rotationObj;
+							rotationObj, iterationObj, animationObj;
 
 						switch (shapeArr[0]) {
 							case 'spiral':
@@ -946,17 +1110,29 @@
 								content += ' [' + (shapeArr[3] === null ? 'GR' : shapeArr[3]) + ']';
 								content += ' (' + shapeArr[1] + ',' + shapeArr[2] + ')';
 								rotationObj = shapeArr[4];
+								iterationObj = shapeArr[5];
+								animationObj = shapeArr[6];
 								break;
 							case 'polygon':
 								content = (polygonNames[shapeArr[4]] || 'Polygon') + ' (' + shapeArr[4] + ')';
 								content += ' R: ' + shapeArr[3];
 								rotationObj = shapeArr[5];
+								iterationObj = shapeArr[6];
+								animationObj = shapeArr[7];
 								break;
 						}
 
 						if (rotationObj.rotate) {
 							content += ' <' + rotationObj.theta + ': ';
 							content += (rotationObj.axisPoint.x === null || rotationObj.axisPoint.y === null ? 'MidPoint' : (rotationObj.axisPoint.x + ', ' + rotationObj.axisPoint.y)) + '>';
+						}
+
+						if (iterationObj.iterate) {
+							content += ' { +' + iterationObj.angle + ', +' + iterationObj.radius + '}x' + iterationObj.limit;
+						}
+
+						if (animationObj.animate) {
+							content = ' <span title="+' + animationObj.angle + ', +' + animationObj.radius + ' every ' + animationObj.interval + '">@</span> ' + content;
 						}
 
 						content += ' (' + shapeArr[1] + ',' + shapeArr[2] + ')';
@@ -974,16 +1150,19 @@
 						shapeStack.splice(i, 1);
 						exportShapeStack.splice(i, 1);
 						updateStackIndication();
-						mainCanvas.clear();
 						drawStack();
 						$stack_block_controls_saveToLS.text('Save to LocalStorage *');
 					},
-					drawStack = function () {
+					drawStack = function (recursive) {
+						mainCanvas.clear();
 						for (var i=0; i<shapeStack.length; i++) {
 							shapeStack[i]();
 						}
 						if ($step1_tools_markersSwitch.is(':checked')) {
 							mainCanvas.markers();
+						}
+						if (recursive) {
+							intervals[-1] = requestAnimationFrame(drawStack);
 						}
 					},
 					updateStackIndication = function () {
@@ -1004,32 +1183,57 @@
 							$stack_block_controls._show();
 						}
 					},
+					getPolygonParams = function () {
+						var edges, radius, x, y, iterationParams = {}, rotationParams = {}, animationParams = {},
+							degreesModifier = $step1_tools_rotator_angleModeCheckbox.is(':checked') ? pi/180 : 1;
+
+						edges = +$step2_polygon_edges.val();
+						radius = +$step2_polygon_radius.val();
+						x = +$step1_coordsX.val();
+						y = +$step1_coordsY.val();
+
+						if (isValid.rotate()) { // Rotate!
+							rotationParams = {
+								rotate: true,
+								theta: +$step1_tools_rotator_angleInput.val() * degreesModifier,
+								axisPoint: getAxisPoint(x, y)
+							}
+						}
+
+						if (isValid.iterate()) { // Iterate!
+							iterationParams = {
+								iterate: true,
+								limit: +$step1_tools_iterator_limitInput.val(),
+								angle: +$step1_tools_iterator_angleInput.val(),
+								radius: +$step1_tools_iterator_radiusInput.val()
+							}
+						}
+
+						if (isValid.animate()) { // Animate!
+							animationParams = {
+								animate: true,
+								interval: +$step1_tools_animator_intervalInput.val(),
+								angle: +$step1_tools_animator_angleInput.val(),
+								radius: +$step1_tools_animator_radiusInput.val()
+							}
+						}
+
+						return { edges: edges, radius: radius, x: x, y: y, rotation: rotationParams, iteration: iterationParams, animation: animationParams };
+					},
 					generatePolygon = function (e, store) {
-						var edges, radius, x, y, rotationParams = {}, degreesModifier = $step1_tools_rotator_angleModeCheckbox.is(':checked') ? pi/180 : 1;
+						var params;
 						setTimeout(function () { // To catch first value
 							if (isValid.coords() && isValid.polygon()) {
-								edges = +$step2_polygon_edges.val();
-								radius = +$step2_polygon_radius.val();
-								x = +$step1_coordsX.val();
-								y = +$step1_coordsY.val();
-
-								if (isValid.rotate()) { // Rotate!
-									rotationParams = {
-										rotate: true,
-										theta: +$step1_tools_rotator_angleInput.val() * degreesModifier,
-										axisPoint: getAxisPoint(x, y)
-									}
-								}
+								params = getPolygonParams();
 
 								if (store) {
-									shapeStack.push(mainCanvas.polygon.bind(mainCanvas, x, y, radius, edges, rotationParams));
-									exportShapeStack.push(['polygon', x, y, radius, edges, rotationParams]);
+									shapeStack.push(mainCanvas.polygon.bind(mainCanvas.polygon, params.x, params.y, params.radius, params.edges, params.rotation, params.iteration, params.animation));
+									exportShapeStack.push(['polygon', params.x, params.y, params.radius, params.edges, params.rotation, params.iteration, params.animation]);
 									saveCurrentStackToLocalStorage();
 									updateStackIndication();
 								} else {
-									mainCanvas.clear();
 									drawStack();
-									mainCanvas.polygon(x, y, radius, edges, rotationParams);
+									mainCanvas.polygon(params.x, params.y, params.radius, params.edges, params.rotation, params.iteration);
 								}
 							}
 						}, 10)
@@ -1059,7 +1263,6 @@
 									saveCurrentStackToLocalStorage();
 									updateStackIndication();
 								} else {
-									mainCanvas.clear();
 									drawStack();
 									mainCanvas.spiral(x, y, ratio, rotationParams);
 								}
@@ -1070,12 +1273,17 @@
 					roundLight = function (num) {
 						var result = ("" + num).substr(0, 6);
 						return +result;
-					}
-					functionifyExportStack = function () {
-						shapeStack = exportShapeStack.map(function (shape) {
-							var type = shape[0];							
-							return mainCanvas[type].bind.apply(mainCanvas[type], [mainCanvas].concat(shape.slice(1)));
-						})
+					},
+					makeShapeMakingFunction = function (shape) {
+						var type = shape[0];
+						return mainCanvas[type].bind.apply(mainCanvas[type], [mainCanvas].concat(shape.slice(1)));
+					},
+					functionifyExportStack = function (single, fromAnimation) {
+						if (!$.isUn(single)) {
+							shapeStack[single] = makeShapeMakingFunction((fromAnimation ? animationShapeStack : exportShapeStack)[single]);
+						} else {
+							shapeStack = exportShapeStack.map(makeShapeMakingFunction)
+						}
 					},
 					makeUpDownFunction = function (range, customInc) {
 						return function (e) {
@@ -1103,10 +1311,50 @@
 						updateStackIndication();
 						drawStack();
 					},
+					startStackAnimations = function () {
+						var i, animation, hasAny = false;
+
+						animationIsOn = true;
+						animationShapeStack = jQuery.extend(true, {}, { a: exportShapeStack}).a;
+
+						for (i=0; i<exportShapeStack.length; i++) {
+							animation = exportShapeStack[i][7];
+							if (animation.animate) {
+								hasAny = true;
+								intervals.push(
+									setInterval((function (i) {
+										var shape = animationShapeStack[i];
+										return function () {
+											shape[3] += shape[7].radius;
+											if (shape[5].rotate) {
+												shape[5].theta += shape[7].angle;
+											}
+											functionifyExportStack(i, true);
+										}
+									})(i), animation.interval)
+								)
+							}
+						}
+						if (hasAny) {
+							drawStack(true);
+						}
+					},
 					toggleRotationView = function () {
 						$step1_tools_rotator_section._toggle($step1_tools_rotator_switchCheckbox.is(':checked'));
 					},
+					toggleIterationView = function () {
+						$step1_tools_iterator_section._toggle($step1_tools_iterator_checkbox.is(':checked'));
+					},
+					toggleAnimationView = function () {
+						if ($step1_tools_animator_checkbox.is(':checked')) {
+							startAnimation();
+						} else {
+							stopAnimation();
+						}
+						$step1_tools_animator_section._toggle($step1_tools_animator_checkbox.is(':checked')); // Bitwise evaluates both! (Unrelated to here)
+					},
 					enhanceJQuery = function () {
+						$.isUn = function (ob) { return typeof(ob)==='undefined'; }
 						$.fn._hide = function () {
 							$(this).addClass('hidden');
 							return $(this);
@@ -1119,6 +1367,28 @@
 							flag ? this._show() : this._hide();
 							return $(this);
 						}
+					},
+					startAnimation = function () {
+						stopAnimation();
+						setTimeout(function(){ // Timeout to respond after upDowns
+							var angle = +$step1_tools_animator_angleInput.val(),
+								radius = +$step1_tools_animator_radiusInput.val(),
+								params = getPolygonParams();
+							intervals.push(
+								setInterval(function () {  /// Animation Interval ///
+									+radius && (params.radius += radius);
+									if (params.rotation.rotate) {
+										params.rotation.theta += angle;
+									}
+									drawStack();
+									mainCanvas.polygon(params.x, params.y, params.radius, params.edges, params.rotation, params.iteration);
+
+								}, +$step1_tools_animator_intervalInput.val())
+							)
+						},0)
+					},
+					stopAnimation = function () {
+						intervals.map(function(int) { clearInterval(int) })
 					};
 
 				enhanceJQuery();
@@ -1143,7 +1413,13 @@
 				$step2_polygon_radius.on("keydown", makeUpDownFunction(ranges.radius, 10));
 				$step2_spiral_ratioCustom.on("keydown", makeUpDownFunction(ranges.ratio, 0.05));
 				$step1_tools_rotator_angleInput.on("keydown", makeUpDownFunction(ranges.rotationAngle, 0.1));
+				$step1_tools_iterator_limitInput.on("keydown", makeUpDownFunction(ranges.iterationLimit, 1));
+				$step1_tools_iterator_angleInput.on("keydown", makeUpDownFunction(ranges.iterationAngle, 0.05));
+				$step1_tools_iterator_radiusInput.on("keydown", makeUpDownFunction(ranges.iterationRadius, 1));
 
+				$step1_tools_animator_intervalInput.on("keydown", makeUpDownFunction(ranges.iterationLimit, 16));
+				$step1_tools_animator_angleInput.on("keydown", makeUpDownFunction(ranges.iterationAngle, 0.05));
+				$step1_tools_animator_radiusInput.on("keydown", makeUpDownFunction(ranges.iterationRadius, 1));
 
 				// Step 2 //
 				// Polygon Edges and Radius
@@ -1157,23 +1433,29 @@
 				$step1_coords
 						.add($step1_tools_rotator_angleInput)
 						.add($step1_tools_rotator_axisCustomInputs)
+						.add($step1_tools_iterator_inputs)
 							.on("keydown", generatePolygon)
 							.on("keydown", generateSpiral);
 
 				$step1_tools_rotator_axisRadios
+						.add($step1_radios)
 						.add($step1_tools_rotator_angleModeCheckbox)
+						.add($step1_tools_rotator_switchCheckbox)
 							.change(generatePolygon)
-							.change(generateSpiral)
+							.change(generateSpiral);
 
-				$step1_tools_rotator_switchCheckbox
-						.change(toggleRotationView)
-						.change(generatePolygon);
+				$step1_tools_rotator_switchCheckbox.change(toggleRotationView);
+				$step1_tools_iterator_checkbox.change(toggleIterationView);
+				$step1_tools_animator_checkbox.change(toggleAnimationView);
+
+				// Restart animation on playage
+				$controls_inputs
+						.on("keydown", toggleAnimationView);
 
 				$step1_tools_markersSwitch.change(function () {
 					if ($(this).is(':checked')) {
 						mainCanvas.markers();
 					} else {
-						mainCanvas.clear();
 						drawStack();
 						generatePolygon();
 						generateSpiral();
@@ -1181,11 +1463,18 @@
 				})
 				$step1_tools_pushToStack.click(saveCurrentToStack);
 
+				$stack_startAnimations.click(startStackAnimations);
+				$stack_stopAnimations.click(function () {
+					cancelAnimationFrame(intervals[-1]);
+					stopAnimation();
+					animationIsOn = false;
+				})
 				$stack_clearStack.click(function () {
 					exportShapeStack = [];
 					shapeStack = [];
 					updateStackIndication();
-					mainCanvas.clear();
+					generatePolygon();
+					generateSpiral();
 					$stack_block_controls_saveToLS.text('Save to LocalStorage *');
 				})
 
