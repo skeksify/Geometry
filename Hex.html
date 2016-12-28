@@ -468,21 +468,23 @@
 
 					drawSpiral(spiral);
 				},
-				drawCustomPolygon = function (c1, c2, r, edges, rotation, iteration) {
+				drawCustomPolygon = function (params) {
 					var i, polygon,
-						iterate = iteration.iterate,
-						limit = iterate ? iteration.limit : 1,
-						theta = rotation.theta;
+						iterate = params.iteration && !!params.iteration.iterate,
+						limit = iterate ? params.iteration.limit : 1,
+						rotate = params.rotation && !!params.rotation.rotate,
+						theta = rotate ? params.rotation.theta : 0,
+						radius = params.radius;
 
 					for (i=0; i<limit; i++) {
-						polygon = makeGenericPolygon(c1, c2, r, edges);
-						if (rotation.rotate) {
-							polygon = rotateSet(polygon, rotation.axisPoint, theta);
+						polygon = makeGenericPolygon(params.x, params.y, radius, params.edges);
+						if (rotate) {
+							polygon = rotateSet(polygon, params.rotation.axisPoint, theta);
 						}
 						drawPolygon(polygon);
 						if (iterate) {
-							r += iteration.radius;
-							theta += iteration.angle;
+							radius += params.iteration.radius;
+							theta += params.iteration.angle;
 						}
 					}
 					iterate && $('.ui-stack').addClass('wide');
@@ -1101,41 +1103,34 @@
 					},
 					makeBlock = function (shapeIndex) {
 						var content, result,
-							shapeArr = exportShapeStack[shapeIndex],
-							rotationObj, iterationObj, animationObj;
+							shapeObj = exportShapeStack[shapeIndex];
 
-						switch (shapeArr[0]) {
+						switch (shapeObj.type) {
 							case 'spiral':
 								content = 'Spiral';
-								content += ' [' + (shapeArr[3] === null ? 'GR' : shapeArr[3]) + ']';
-								content += ' (' + shapeArr[1] + ',' + shapeArr[2] + ')';
-								rotationObj = shapeArr[4];
-								iterationObj = shapeArr[5];
-								animationObj = shapeArr[6];
+								content += ' [' + (shapeObj[3] === null ? 'GR' : shapeObj[3]) + ']';
+								content += ' (' + shapeObj[1] + ',' + shapeObj[2] + ')';
 								break;
 							case 'polygon':
-								content = (polygonNames[shapeArr[4]] || 'Polygon') + ' (' + shapeArr[4] + ')';
-								content += ' R: ' + shapeArr[3];
-								rotationObj = shapeArr[5];
-								iterationObj = shapeArr[6];
-								animationObj = shapeArr[7];
+								content = (polygonNames[shapeObj.edges] || 'Polygon') + ' (' + shapeObj.edges + ')';
+								content += ' R: ' + shapeObj.radius;
 								break;
 						}
 
-						if (rotationObj.rotate) {
-							content += ' <' + rotationObj.theta + ': ';
-							content += (rotationObj.axisPoint.x === null || rotationObj.axisPoint.y === null ? 'MidPoint' : (rotationObj.axisPoint.x + ', ' + rotationObj.axisPoint.y)) + '>';
+						if (shapeObj.rotation && shapeObj.rotation.rotate) {
+							content += ' <' + shapeObj.rotation.theta + ': ';
+							content += (shapeObj.rotation.axisPoint.x === null || shapeObj.rotation.axisPoint.y === null ? 'MidPoint' : (shapeObj.rotation.axisPoint.x + ', ' + shapeObj.rotation.axisPoint.y)) + '>';
 						}
 
-						if (iterationObj.iterate) {
-							content += ' { +' + iterationObj.angle + ', +' + iterationObj.radius + '}x' + iterationObj.limit;
+						if (shapeObj.iteration && shapeObj.iteration.iterate) {
+							content += ' { +' + shapeObj.iteration.angle + ', +' + shapeObj.iteration.radius + '}x' + shapeObj.iteration.limit;
 						}
 
-						if (animationObj.animate) {
-							content = ' <span title="+' + animationObj.angle + ', +' + animationObj.radius + ' every ' + animationObj.interval + '">@</span> ' + content;
+						if (shapeObj.animation && shapeObj.animation.animate) {
+							content = ' <span title="+' + shapeObj.animation.angle + ', +' + shapeObj.animation.radius + ' every ' + shapeObj.animation.interval + '">@</span> ' + content;
 						}
 
-						content += ' (' + shapeArr[1] + ',' + shapeArr[2] + ')';
+						content += ' (' + shapeObj.x + ',' + shapeObj.y + ')';
 
 						result = $stack_block.clone()._show().html(content);
 						result.append($('<button/>')
@@ -1218,7 +1213,7 @@
 							}
 						}
 
-						return { edges: edges, radius: radius, x: x, y: y, rotation: rotationParams, iteration: iterationParams, animation: animationParams };
+						return { type: 'polygon', edges: edges, radius: radius, x: x, y: y, rotation: rotationParams, iteration: iterationParams, animation: animationParams };
 					},
 					generatePolygon = function (e, store) {
 						var params;
@@ -1227,13 +1222,13 @@
 								params = getPolygonParams();
 
 								if (store) {
-									shapeStack.push(mainCanvas.polygon.bind(mainCanvas.polygon, params.x, params.y, params.radius, params.edges, params.rotation, params.iteration, params.animation));
-									exportShapeStack.push(['polygon', params.x, params.y, params.radius, params.edges, params.rotation, params.iteration, params.animation]);
+									shapeStack.push(mainCanvas.polygon.bind(mainCanvas.polygon, params));
+									exportShapeStack.push(params);
 									saveCurrentStackToLocalStorage();
 									updateStackIndication();
 								} else {
 									drawStack();
-									mainCanvas.polygon(params.x, params.y, params.radius, params.edges, params.rotation, params.iteration);
+									mainCanvas.polygon(params);
 								}
 							}
 						}, 10)
@@ -1275,8 +1270,7 @@
 						return +result;
 					},
 					makeShapeMakingFunction = function (shape) {
-						var type = shape[0];
-						return mainCanvas[type].bind.apply(mainCanvas[type], [mainCanvas].concat(shape.slice(1)));
+						return mainCanvas[shape.type].bind(mainCanvas, shape);
 					},
 					functionifyExportStack = function (single, fromAnimation) {
 						if (!$.isUn(single)) {
@@ -1318,16 +1312,16 @@
 						animationShapeStack = jQuery.extend(true, {}, { a: exportShapeStack}).a;
 
 						for (i=0; i<exportShapeStack.length; i++) {
-							animation = exportShapeStack[i][7];
-							if (animation.animate) {
+							animation = exportShapeStack[i].animation;
+							if (animation && animation.animate) {
 								hasAny = true;
 								intervals.push(
 									setInterval((function (i) {
 										var shape = animationShapeStack[i];
 										return function () {
-											shape[3] += shape[7].radius;
-											if (shape[5].rotate) {
-												shape[5].theta += shape[7].angle;
+											shape.radius += animation.radius;
+											if (shape.rotate) {
+												shape.rotate.theta += animation.angle;
 											}
 											functionifyExportStack(i, true);
 										}
@@ -1337,6 +1331,8 @@
 						}
 						if (hasAny) {
 							drawStack(true);
+						} else {
+							alert('No animations')
 						}
 					},
 					toggleRotationView = function () {
@@ -1381,7 +1377,7 @@
 										params.rotation.theta += angle;
 									}
 									drawStack();
-									mainCanvas.polygon(params.x, params.y, params.radius, params.edges, params.rotation, params.iteration);
+									mainCanvas.polygon(params);
 
 								}, +$step1_tools_animator_intervalInput.val())
 							)
