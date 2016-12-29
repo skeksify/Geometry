@@ -96,6 +96,10 @@
 			text-align: center;
 		}
 
+		.color-input {
+			width: 74px;
+		}
+
 		.tools-rotator-angle {
 			margin-left: 95px;
 		}
@@ -148,6 +152,16 @@
 
 		.ui-stack-saveToLS {
 		}
+
+		.color-map-wrapper {
+			top: 102px;
+			right: 16px;
+			padding: 10px;
+			background: #222;
+			position: absolute;
+			border-radius: 128px;
+			border: 2px solid #121212;
+		}
     </style>
 </head>
 <body>
@@ -157,12 +171,155 @@
 		<div class="ui-controls-wrapper" id="ui-controls-wrapper">
 			<div class="step-1">
 				<div class="coords-wrapper">
+
+
+
+
 					<div>
 						<span class="coords-X-wrapper">
 							X: <input type="text" class="coords-X number-input" value="400" />
 						</span>
 						<span class="coords-Y-wrapper">
 							Y: <input type="text" class="coords-Y number-input" value="400" />
+						</span>
+						<span class="color-wrapper">
+							Color: <input type="text" class="color-input number-input" value="#FFF" />
+							<div class="color-map-wrapper hidden">
+								<img src="img_colormapWblack.png" usemap="#colormap" alt="colormap" />
+								<map id="colormap" name="colormap">
+									<area shape="poly" coords="63,0,72,4,72,15,63,19,54,15,54,4" data-color-code="003366">
+									<area shape="poly" coords="81,0,90,4,90,15,81,19,72,15,72,4" data-color-code="336699">
+									<area shape="poly" coords="99,0,108,4,108,15,99,19,90,15,90,4" data-color-code="3366CC">
+									<area shape="poly" coords="117,0,126,4,126,15,117,19,108,15,108,4" data-color-code="003399">
+									<area shape="poly" coords="135,0,144,4,144,15,135,19,126,15,126,4" data-color-code="000099">
+									<area shape="poly" coords="153,0,162,4,162,15,153,19,144,15,144,4" data-color-code="0000CC">
+									<area shape="poly" coords="171,0,180,4,180,15,171,19,162,15,162,4" data-color-code="000066">
+									<area shape="poly" coords="54,15,63,19,63,30,54,34,45,30,45,19" data-color-code="006666">
+									<area shape="poly" coords="72,15,81,19,81,30,72,34,63,30,63,19" data-color-code="006699">
+									<area shape="poly" coords="90,15,99,19,99,30,90,34,81,30,81,19" data-color-code="0099CC">
+									<area shape="poly" coords="108,15,117,19,117,30,108,34,99,30,99,19" data-color-code="0066CC">
+									<area shape="poly" coords="126,15,135,19,135,30,126,34,117,30,117,19" data-color-code="0033CC">
+									<area shape="poly" coords="144,15,153,19,153,30,144,34,135,30,135,19" data-color-code="0000FF">
+									<area shape="poly" coords="162,15,171,19,171,30,162,34,153,30,153,19" data-color-code="3333FF">
+									<area shape="poly" coords="180,15,189,19,189,30,180,34,171,30,171,19" data-color-code="333399">
+									<area shape="poly" coords="45,30,54,34,54,45,45,49,36,45,36,34" data-color-code="669999">
+									<area shape="poly" coords="63,30,72,34,72,45,63,49,54,45,54,34" data-color-code="009999">
+									<area shape="poly" coords="81,30,90,34,90,45,81,49,72,45,72,34" data-color-code="33CCCC">
+									<area shape="poly" coords="99,30,108,34,108,45,99,49,90,45,90,34" data-color-code="00CCFF">
+									<area shape="poly" coords="117,30,126,34,126,45,117,49,108,45,108,34" data-color-code="0099FF">
+									<area shape="poly" coords="135,30,144,34,144,45,135,49,126,45,126,34" data-color-code="0066FF">
+									<area shape="poly" coords="153,30,162,34,162,45,153,49,144,45,144,34" data-color-code="3366FF">
+									<area shape="poly" coords="171,30,180,34,180,45,171,49,162,45,162,34" data-color-code="3333CC">
+									<area shape="poly" coords="189,30,198,34,198,45,189,49,180,45,180,34" data-color-code="666699">
+									<area shape="poly" coords="36,45,45,49,45,60,36,64,27,60,27,49" data-color-code="339966">
+									<area shape="poly" coords="54,45,63,49,63,60,54,64,45,60,45,49" data-color-code="00CC99">
+									<area shape="poly" coords="72,45,81,49,81,60,72,64,63,60,63,49" data-color-code="00FFCC">
+									<area shape="poly" coords="90,45,99,49,99,60,90,64,81,60,81,49" data-color-code="00FFFF">
+									<area shape="poly" coords="108,45,117,49,117,60,108,64,99,60,99,49" data-color-code="33CCFF">
+									<area shape="poly" coords="126,45,135,49,135,60,126,64,117,60,117,49" data-color-code="3399FF">
+									<area shape="poly" coords="144,45,153,49,153,60,144,64,135,60,135,49" data-color-code="6699FF">
+									<area shape="poly" coords="162,45,171,49,171,60,162,64,153,60,153,49" data-color-code="6666FF">
+									<area shape="poly" coords="180,45,189,49,189,60,180,64,171,60,171,49" data-color-code="6600FF">
+									<area shape="poly" coords="198,45,207,49,207,60,198,64,189,60,189,49" data-color-code="6600CC">
+									<area shape="poly" coords="27,60,36,64,36,75,27,79,18,75,18,64" data-color-code="339933">
+									<area shape="poly" coords="45,60,54,64,54,75,45,79,36,75,36,64" data-color-code="00CC66">
+									<area shape="poly" coords="63,60,72,64,72,75,63,79,54,75,54,64" data-color-code="00FF99">
+									<area shape="poly" coords="81,60,90,64,90,75,81,79,72,75,72,64" data-color-code="66FFCC">
+									<area shape="poly" coords="99,60,108,64,108,75,99,79,90,75,90,64" data-color-code="66FFFF">
+									<area shape="poly" coords="117,60,126,64,126,75,117,79,108,75,108,64" data-color-code="66CCFF">
+									<area shape="poly" coords="135,60,144,64,144,75,135,79,126,75,126,64" data-color-code="99CCFF">
+									<area shape="poly" coords="153,60,162,64,162,75,153,79,144,75,144,64" data-color-code="9999FF">
+									<area shape="poly" coords="171,60,180,64,180,75,171,79,162,75,162,64" data-color-code="9966FF">
+									<area shape="poly" coords="189,60,198,64,198,75,189,79,180,75,180,64" data-color-code="9933FF">
+									<area shape="poly" coords="207,60,216,64,216,75,207,79,198,75,198,64" data-color-code="9900FF">
+									<area shape="poly" coords="18,75,27,79,27,90,18,94,9,90,9,79" data-color-code="006600">
+									<area shape="poly" coords="36,75,45,79,45,90,36,94,27,90,27,79" data-color-code="00CC00">
+									<area shape="poly" coords="54,75,63,79,63,90,54,94,45,90,45,79" data-color-code="00FF00">
+									<area shape="poly" coords="72,75,81,79,81,90,72,94,63,90,63,79" data-color-code="66FF99">
+									<area shape="poly" coords="90,75,99,79,99,90,90,94,81,90,81,79" data-color-code="99FFCC">
+									<area shape="poly" coords="108,75,117,79,117,90,108,94,99,90,99,79" data-color-code="CCFFFF">
+									<area shape="poly" coords="126,75,135,79,135,90,126,94,117,90,117,79" data-color-code="CCCCFF">
+									<area shape="poly" coords="144,75,153,79,153,90,144,94,135,90,135,79" data-color-code="CC99FF">
+									<area shape="poly" coords="162,75,171,79,171,90,162,94,153,90,153,79" data-color-code="CC66FF">
+									<area shape="poly" coords="180,75,189,79,189,90,180,94,171,90,171,79" data-color-code="CC33FF">
+									<area shape="poly" coords="198,75,207,79,207,90,198,94,189,90,189,79" data-color-code="CC00FF">
+									<area shape="poly" coords="216,75,225,79,225,90,216,94,207,90,207,79" data-color-code="9900CC">
+									<area shape="poly" coords="9,90,18,94,18,105,9,109,0,105,0,94" data-color-code="003300">
+									<area shape="poly" coords="27,90,36,94,36,105,27,109,18,105,18,94" data-color-code="009933">
+									<area shape="poly" coords="45,90,54,94,54,105,45,109,36,105,36,94" data-color-code="33CC33">
+									<area shape="poly" coords="63,90,72,94,72,105,63,109,54,105,54,94" data-color-code="66FF66">
+									<area shape="poly" coords="81,90,90,94,90,105,81,109,72,105,72,94" data-color-code="99FF99">
+									<area shape="poly" coords="99,90,108,94,108,105,99,109,90,105,90,94" data-color-code="CCFFCC">
+									<area shape="poly" coords="117,90,126,94,126,105,117,109,108,105,108,94" data-color-code="FFFFFF">
+									<area shape="poly" coords="135,90,144,94,144,105,135,109,126,105,126,94" data-color-code="FFCCFF">
+									<area shape="poly" coords="153,90,162,94,162,105,153,109,144,105,144,94" data-color-code="FF99FF">
+									<area shape="poly" coords="171,90,180,94,180,105,171,109,162,105,162,94" data-color-code="FF66FF">
+									<area shape="poly" coords="189,90,198,94,198,105,189,109,180,105,180,94" data-color-code="FF00FF">
+									<area shape="poly" coords="207,90,216,94,216,105,207,109,198,105,198,94" data-color-code="CC00CC">
+									<area shape="poly" coords="225,90,234,94,234,105,225,109,216,105,216,94" data-color-code="660066">
+									<area shape="poly" coords="18,105,27,109,27,120,18,124,9,120,9,109" data-color-code="336600">
+									<area shape="poly" coords="36,105,45,109,45,120,36,124,27,120,27,109" data-color-code="009900">
+									<area shape="poly" coords="54,105,63,109,63,120,54,124,45,120,45,109" data-color-code="66FF33">
+									<area shape="poly" coords="72,105,81,109,81,120,72,124,63,120,63,109" data-color-code="99FF66">
+									<area shape="poly" coords="90,105,99,109,99,120,90,124,81,120,81,109" data-color-code="CCFF99">
+									<area shape="poly" coords="108,105,117,109,117,120,108,124,99,120,99,109" data-color-code="FFFFCC">
+									<area shape="poly" coords="126,105,135,109,135,120,126,124,117,120,117,109" data-color-code="FFCCCC">
+									<area shape="poly" coords="144,105,153,109,153,120,144,124,135,120,135,109" data-color-code="FF99CC">
+									<area shape="poly" coords="162,105,171,109,171,120,162,124,153,120,153,109" data-color-code="FF66CC">
+									<area shape="poly" coords="180,105,189,109,189,120,180,124,171,120,171,109" data-color-code="FF33CC">
+									<area shape="poly" coords="198,105,207,109,207,120,198,124,189,120,189,109" data-color-code="CC0099">
+									<area shape="poly" coords="216,105,225,109,225,120,216,124,207,120,207,109" data-color-code="993399">
+									<area shape="poly" coords="27,120,36,124,36,135,27,139,18,135,18,124" data-color-code="333300">
+									<area shape="poly" coords="45,120,54,124,54,135,45,139,36,135,36,124" data-color-code="669900">
+									<area shape="poly" coords="63,120,72,124,72,135,63,139,54,135,54,124" data-color-code="99FF33">
+									<area shape="poly" coords="81,120,90,124,90,135,81,139,72,135,72,124" data-color-code="CCFF66">
+									<area shape="poly" coords="99,120,108,124,108,135,99,139,90,135,90,124" data-color-code="FFFF99">
+									<area shape="poly" coords="117,120,126,124,126,135,117,139,108,135,108,124" data-color-code="FFCC99">
+									<area shape="poly" coords="135,120,144,124,144,135,135,139,126,135,126,124" data-color-code="FF9999">
+									<area shape="poly" coords="153,120,162,124,162,135,153,139,144,135,144,124" data-color-code="FF6699">
+									<area shape="poly" coords="171,120,180,124,180,135,171,139,162,135,162,124" data-color-code="FF3399">
+									<area shape="poly" coords="189,120,198,124,198,135,189,139,180,135,180,124" data-color-code="CC3399">
+									<area shape="poly" coords="207,120,216,124,216,135,207,139,198,135,198,124" data-color-code="990099">
+									<area shape="poly" coords="36,135,45,139,45,150,36,154,27,150,27,139" data-color-code="666633">
+									<area shape="poly" coords="54,135,63,139,63,150,54,154,45,150,45,139" data-color-code="99CC00">
+									<area shape="poly" coords="72,135,81,139,81,150,72,154,63,150,63,139" data-color-code="CCFF33">
+									<area shape="poly" coords="90,135,99,139,99,150,90,154,81,150,81,139" data-color-code="FFFF66">
+									<area shape="poly" coords="108,135,117,139,117,150,108,154,99,150,99,139" data-color-code="FFCC66">
+									<area shape="poly" coords="126,135,135,139,135,150,126,154,117,150,117,139" data-color-code="FF9966">
+									<area shape="poly" coords="144,135,153,139,153,150,144,154,135,150,135,139" data-color-code="FF6666">
+									<area shape="poly" coords="162,135,171,139,171,150,162,154,153,150,153,139" data-color-code="FF0066">
+									<area shape="poly" coords="180,135,189,139,189,150,180,154,171,150,171,139" data-color-code="CC6699">
+									<area shape="poly" coords="198,135,207,139,207,150,198,154,189,150,189,139" data-color-code="993366">
+									<area shape="poly" coords="216,135,225,139,225,150,216,154,207,150,207,139" data-color-code="000000">
+
+									<area shape="poly" coords="45,150,54,154,54,165,45,169,36,165,36,154" data-color-code="999966">
+									<area shape="poly" coords="63,150,72,154,72,165,63,169,54,165,54,154" data-color-code="CCCC00">
+									<area shape="poly" coords="81,150,90,154,90,165,81,169,72,165,72,154" data-color-code="FFFF00">
+									<area shape="poly" coords="99,150,108,154,108,165,99,169,90,165,90,154" data-color-code="FFCC00">
+									<area shape="poly" coords="117,150,126,154,126,165,117,169,108,165,108,154" data-color-code="FF9933">
+									<area shape="poly" coords="135,150,144,154,144,165,135,169,126,165,126,154" data-color-code="FF6600">
+									<area shape="poly" coords="153,150,162,154,162,165,153,169,144,165,144,154" data-color-code="FF5050">
+									<area shape="poly" coords="171,150,180,154,180,165,171,169,162,165,162,154" data-color-code="CC0066">
+									<area shape="poly" coords="189,150,198,154,198,165,189,169,180,165,180,154" data-color-code="660033">
+									<area shape="poly" coords="207,150,216,154,216,165,207,169,198,165,198,154" data-color-code="000000">
+
+									<area shape="poly" coords="54,165,63,169,63,180,54,184,45,180,45,169" data-color-code="996633">
+									<area shape="poly" coords="72,165,81,169,81,180,72,184,63,180,63,169" data-color-code="CC9900">
+									<area shape="poly" coords="90,165,99,169,99,180,90,184,81,180,81,169" data-color-code="FF9900">
+									<area shape="poly" coords="108,165,117,169,117,180,108,184,99,180,99,169" data-color-code="CC6600">
+									<area shape="poly" coords="126,165,135,169,135,180,126,184,117,180,117,169" data-color-code="FF3300">
+									<area shape="poly" coords="144,165,153,169,153,180,144,184,135,180,135,169" data-color-code="FF0000">
+									<area shape="poly" coords="162,165,171,169,171,180,162,184,153,180,153,169" data-color-code="CC0000">
+									<area shape="poly" coords="180,165,189,169,189,180,180,184,171,180,171,169" data-color-code="990033">
+									<area shape="poly" coords="63,180,72,184,72,195,63,199,54,195,54,184" data-color-code="663300">
+									<area shape="poly" coords="81,180,90,184,90,195,81,199,72,195,72,184" data-color-code="996600">
+									<area shape="poly" coords="99,180,108,184,108,195,99,199,90,195,90,184" data-color-code="CC3300">
+									<area shape="poly" coords="117,180,126,184,126,195,117,199,108,195,108,184" data-color-code="993300">
+									<area shape="poly" coords="135,180,144,184,144,195,135,199,126,195,126,184" data-color-code="990000">
+									<area shape="poly" coords="153,180,162,184,162,195,153,199,144,195,144,184" data-color-code="800000">
+									<area shape="poly" coords="171,180,180,184,180,195,171,199,162,195,162,184" data-color-code="993333">
+								</map>
+							</div>
 						</span>
 					</div>
 				</div>
@@ -345,7 +502,6 @@
 	</div>
 
     <script>
-
 		var pi = Math.PI,
 			phi = 2/(1 + Math.sqrt(5)),
 			phiComp = 1-phi,
@@ -475,6 +631,9 @@
 						rotate = params.rotation && !!params.rotation.rotate,
 						theta = rotate ? params.rotation.theta : 0,
 						radius = params.radius;
+
+					ctx.strokeStyle = params.color || '#fff';
+
 
 					for (i=0; i<limit; i++) {
 						polygon = makeGenericPolygon(params.x, params.y, radius, params.edges);
@@ -820,14 +979,14 @@
 				this.clear = clear;
 				this.markers = markMiddleSpot;
 
-				ctx.strokeStyle = "#FFF";
 			},
 			ui = function () {
 				var regi = {
 						onlyNumbers: /^\d+$/,
 						onlyNumbersNeg: /^-?\d+$/,
 						onlyNumbersWithFractions: /^\d+(\.\d+)?$/,
-						onlyNumbersWithFractionsNeg: /^-?\d+(\.\d+)?$/
+						onlyNumbersWithFractionsNeg: /^-?\d+(\.\d+)?$/,
+						hexadecimalColor: /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/
 					},
 					shapeStack = [],
 					animationShapeStack = [],
@@ -879,6 +1038,9 @@
 					$step1_coords = $controls.find('.coords-wrapper .coords-X, .coords-wrapper .coords-Y'),
 					$step1_coordsX = $step1_coords.filter('.coords-X'),
 					$step1_coordsY = $step1_coords.filter('.coords-Y'),
+					$step1_color_wrapper = $controls.find('.color-wrapper'),
+					$step1_colorInput = $step1_color_wrapper.find('input'),
+					$step1_color_map_wrapper = $step1_color_wrapper.find('.color-map-wrapper'),
 					$step1_radios = $controls.find("input[type=radio][name=step1-radio]"),
 					$step1_radiosPolygon = $step1_radios.filter('#step1-radio1'),
 					$step1_radiosSpiral = $step1_radios.filter('#step1-radio2'),
@@ -959,6 +1121,19 @@
 								$step1_coordsY.removeClass('bad');
 							}
 
+							return isValid;
+						},
+						color: function () {
+							var color = $step1_colorInput.val(),
+								isValid = true;
+
+							if (!color.match(regi.hexadecimalColor)) {
+								isValid = false;
+								color && $step1_colorInput.addClass('bad');
+							} else {
+								$step1_colorInput.removeClass('bad');
+							}
+							
 							return isValid;
 						},
 						rotate: function () {
@@ -1139,6 +1314,10 @@
 								.click(deleteFromStack.bind(null, shapeIndex))
 						)
 
+						if (shapeObj.color) {
+							result.css('color', shapeObj.color);
+						}
+
 						return result;
 					},
 					deleteFromStack = function (i) {
@@ -1180,7 +1359,8 @@
 					},
 					getPolygonParams = function () {
 						var edges, radius, x, y, iterationParams = {}, rotationParams = {}, animationParams = {},
-							degreesModifier = $step1_tools_rotator_angleModeCheckbox.is(':checked') ? pi/180 : 1;
+							degreesModifier = $step1_tools_rotator_angleModeCheckbox.is(':checked') ? pi/180 : 1,
+							color = isValid.color() ? $step1_colorInput.val() : '';
 
 						edges = +$step2_polygon_edges.val();
 						radius = +$step2_polygon_radius.val();
@@ -1213,7 +1393,7 @@
 							}
 						}
 
-						return { type: 'polygon', edges: edges, radius: radius, x: x, y: y, rotation: rotationParams, iteration: iterationParams, animation: animationParams };
+						return { type: 'polygon', edges: edges, radius: radius, x: x, y: y, rotation: rotationParams, iteration: iterationParams, animation: animationParams, color: color };
 					},
 					generatePolygon = function (e, store) {
 						var params;
@@ -1385,8 +1565,21 @@
 					},
 					stopAnimation = function () {
 						intervals.map(function(int) { clearInterval(int) })
+					},
+					bindColorMap = function () {
+						$step1_color_map_wrapper.find('area').each(function (th) {
+							var color = $(this).data('color-code');
+							$(this).click(function () {
+								$step1_colorInput.val('#' + color).change();
+								$step1_color_map_wrapper._hide();
+							})
+						});
+						$step1_colorInput.on('focus', function () {
+							$step1_color_map_wrapper._show();
+						})
 					};
 
+				bindColorMap();
 				enhanceJQuery();
 
 				// Step 1 //
@@ -1437,12 +1630,15 @@
 						.add($step1_radios)
 						.add($step1_tools_rotator_angleModeCheckbox)
 						.add($step1_tools_rotator_switchCheckbox)
+						.add($step1_colorInput)
 							.change(generatePolygon)
 							.change(generateSpiral);
 
 				$step1_tools_rotator_switchCheckbox.change(toggleRotationView);
 				$step1_tools_iterator_checkbox.change(toggleIterationView);
-				$step1_tools_animator_checkbox.change(toggleAnimationView);
+				$step1_tools_animator_checkbox
+						.add($step1_colorInput)
+						.change(toggleAnimationView);
 
 				// Restart animation on playage
 				$controls_inputs
@@ -1465,14 +1661,16 @@
 					stopAnimation();
 					animationIsOn = false;
 				})
-				$stack_clearStack.click(function () {
-					exportShapeStack = [];
-					shapeStack = [];
-					updateStackIndication();
-					generatePolygon();
-					generateSpiral();
-					$stack_block_controls_saveToLS.text('Save to LocalStorage *');
-				})
+				$stack_clearStack
+					.add($stack_empty)
+					.click(function () {
+						exportShapeStack = [];
+						shapeStack = [];
+						updateStackIndication();
+						generatePolygon();
+						generateSpiral();
+						$stack_block_controls_saveToLS.text('Save to LocalStorage *');
+					})
 
 				$stack_block_controls_saveToLS.click(saveCurrentStackToLocalStorage);
 
@@ -1501,10 +1699,6 @@
 						$stack_exportWrapper.fadeIn(800);
 					}
 				})
-
-				this.getJSON = function () {
-					console.log(JSON.stringify(exportShapeStack));
-				}
 			},
 			mainCanvas = new geometryMaker("canvas0"),
 			uiInstance = new ui();
