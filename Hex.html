@@ -1500,8 +1500,8 @@
 										var shape = animationShapeStack[i];
 										return function () {
 											shape.radius += animation.radius;
-											if (shape.rotate) {
-												shape.rotate.theta += animation.angle;
+											if (shape.rotation.rotate) {
+												shape.rotation.theta += animation.angle;
 											}
 											functionifyExportStack(i, true);
 										}
