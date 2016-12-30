@@ -1418,8 +1418,10 @@
 						var i = $(e.target).attr('data-shape-index');
 						shapeStack.splice(i, 1);
 						exportShapeStack.splice(i, 1);
+						stopAnimation(true);
 						updateStackIndication();
 						drawStack();
+						toggleAnimationView();
 						$stack_block_controls_saveToLS.text('Save to LocalStorage *');
 						$stack_modal._hide();
 					},
@@ -1640,7 +1642,8 @@
 								hasAny = true;
 								intervals.push(
 									setInterval((function (i) {
-										var shape = animationShapeStack[i];
+										var shape = animationShapeStack[i],
+											animation = exportShapeStack[i].animation;
 										return function () {
 											shape.radius += animation.radius;
 											if (shape.rotation.rotate) {
@@ -1712,15 +1715,17 @@
 							}
 						},0)
 					},
-					stopAnimation = function () {
+					stopAnimation = function (clearCurrent) {
+						clearCurrent && cancelAnimationFrame(intervals[-1]);
 						intervals.map(function(int) { clearInterval(int) });
 						intervals = [];
+						animationIsOn = false;
 					},
 					bindColorMap = function () {
 						$step1_color_map_wrapper.find('area').each(function (th) {
 							var color = $(this).data('color-code');
 							$(this).click(function () {
-								$step1_colorInput.val('#' + color).change();
+								$step1_colorInput.val('#' + color).css('border-color', '#' + color);
 								$step1_color_map_wrapper._hide();
 							})
 						});
@@ -1786,9 +1791,8 @@
 				$step1_tools_rotator_switchCheckbox.change(toggleRotationView);
 				$step1_tools_iterator_switchCheckbox.change(toggleIterationView);
 
-				// Restart animation on playage
-				$controls_inputs
-						.on("keydown", toggleAnimationView);
+				// Restart animation on playage /// Can delete?
+				$controls_inputs.on("keydown", toggleAnimationView);
 
 				$step2_spiral_ratioCustom.on("focus", function(){
 					$step2_spiral_radiosCustom.prop('checked', true).change();
@@ -1810,9 +1814,7 @@
 
 				$stack_startAnimations.click(startStackAnimations);
 				$stack_stopAnimations.click(function () {
-					cancelAnimationFrame(intervals[-1]);
-					stopAnimation();
-					animationIsOn = false;
+					stopAnimation(true);
 				})
 				$stack_clearStack.click(function () {
 						exportShapeStack = [];
