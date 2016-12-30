@@ -1421,6 +1421,7 @@
 						stopAnimation(true);
 						updateStackIndication();
 						drawStack();
+						generateShape();
 						toggleAnimationView();
 						$stack_block_controls_saveToLS.text('Save to LocalStorage *');
 						$stack_modal._hide();
@@ -1725,8 +1726,9 @@
 						$step1_color_map_wrapper.find('area').each(function (th) {
 							var color = $(this).data('color-code');
 							$(this).click(function () {
-								$step1_colorInput.val('#' + color).css('border-color', '#' + color);
+								$step1_colorInput.val('#' + color).css('border-color', '#' + color).trigger('change');
 								$step1_color_map_wrapper._hide();
+
 							})
 						});
 						$step1_colorInput.on('focus', function () {
