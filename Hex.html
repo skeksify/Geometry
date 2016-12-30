@@ -118,6 +118,10 @@
 			padding-left: 23px;
 		}
 
+		.ui-stack-block-wrapper {
+			position: relative;
+		}
+
 		.rotation-axis-wrapper {
 			padding: 10px 24px 0;
 		}
@@ -142,13 +146,13 @@
 			margin: 0 20px;
 		}
 
-		button.stack-delete {
+		/*button.stack-delete {
 			width: 16px;
 			height: 16px;
 			padding: 0px;
 			margin: 0 10px;
 			font-weight: bold;
-		}
+		}*/
 
 		.floatingCaption {
 			width: 120px;
@@ -165,6 +169,13 @@
 			position: absolute;
 			border-radius: 128px;
 			border: 2px solid #121212;
+		}
+
+		.ui-stack-modal {
+			border-radius: 3px;
+			background: #2F2F2F;
+			border: 1px solid white;
+			padding: 0 10px 22px 10px;
 		}
     </style>
 </head>
@@ -498,6 +509,33 @@
 			</div>
 			<div class="ui-stack-block-wrapper hidden">
 				<div class="ui-stack-block hidden"></div>
+			</div>
+			<div class="ui-stack-modal abs hidden">
+				<h3 class="modal-type"></h3>
+				<div class="modal-radius hidden"></div>
+				<div>
+					<span class="modal-coords"></span>
+				</div>
+				<div class="modal-ratio hidden"></div>
+				<div class="modal-rotation-wrapper hidden">
+					<h5>Rotation</h5>
+					<div>Angle: <span class="modal-rotation-angle"></span></div>
+					<div>Axis Point: <span class="modal-rotation-axis"></span></div>
+				</div>
+				<div class="modal-iteration-wrapper hidden">
+					<h5>Iteration</h5>
+					<div>Limit: <span class="modal-iteration-limit"></span></div>
+					<div>Angle step: <span class="modal-iteration-angle"></span></div>
+					<div>Radius step: <span class="modal-iteration-radius"></span></div>
+				</div>
+				<div class="modal-animation-wrapper hidden">
+					<h5>Animation</h5>
+					<div>Interval: <span class="modal-animation-interval"></span></div>
+					<div>Angle step: <span class="modal-animation-angle"></span></div>
+					<div>Radius step: <span class="modal-animation-radius"></span></div>
+				</div>
+				<button class="stack-load-params">Load Params</button>
+				<button class="stack-delete">Delete</button>
 			</div>
 		</div>
 	</div>
@@ -1024,11 +1062,12 @@
 					$stack_block = $stack_block_wrapper.find('.ui-stack-block').remove(),
 					$stack_clearStack = $stack.find('.tools-clearStack'),
 					$stack_exportWrapper = $stack.find('.export-wrapper'),
+					$stack_modal = $stack.find('.ui-stack-modal'),
 					$stack_exportOutputInput = $stack_exportWrapper.find('textarea'),
 					$step1_tools = $controls.find('.tools-wrapper'),
 					$step1_tools_iterator = $step1_tools.find('.iteration-wrapper'),
 					$step1_tools_iterator_section = $step1_tools_iterator.find('.iterator-section'),
-					$step1_tools_iterator_checkbox = $step1_tools_iterator.find('#iterator-checkbox'),
+					$step1_tools_iterator_switchCheckbox = $step1_tools_iterator.find('#iterator-checkbox'),
 					$step1_tools_iterator_inputs = $step1_tools_iterator.find('input[type=text]'),
 					$step1_tools_iterator_limitInput = $step1_tools_iterator_inputs.filter('.iterator-limit'),
 					$step1_tools_iterator_angleInput = $step1_tools_iterator_inputs.filter('.iterator-angle'),
@@ -1036,7 +1075,7 @@
 					$step1_tools_iterator_degMode = $step1_tools_iterator.find('#iterator-angle-degreeMode'),
 					$step1_tools_animator = $step1_tools.find('.animation-wrapper'),
 					$step1_tools_animator_section = $step1_tools_animator.find('.animator-section'),
-					$step1_tools_animator_checkbox = $step1_tools_animator.find('#animator-checkbox'),
+					$step1_tools_animator_switchCheckbox = $step1_tools_animator.find('#animator-checkbox'),
 					$step1_tools_animator_inputs = $step1_tools_animator.find('input[type=text]'),
 					$step1_tools_animator_intervalInput = $step1_tools_animator_inputs.filter('.animator-interval'),
 					$step1_tools_animator_angleInput = $step1_tools_animator_inputs.filter('.animator-angle'),
@@ -1070,11 +1109,11 @@
 					$step2_polygon_inputs = $step2.find('.step2-polygon input'),
 					$step2_polygon_edges = $step2_polygon_inputs.filter('.polygon-edges'),
 					$step2_polygon_radius = $step2_polygon_inputs.filter('.polygon-radius'),
-					$step2_spiral_ratio = $step2.find('.spiral-ratio-wrapper'),
-					$step2_spiral_radios = $step2_spiral_ratio.find('input[type=radio][name=spiral-ratio-radio1]'),
+					$step2_spiral_ratio_wrapper = $step2.find('.spiral-ratio-wrapper'),
+					$step2_spiral_radios = $step2_spiral_ratio_wrapper.find('input[type=radio][name=spiral-ratio-radio1]'),
 					$step2_spiral_radiosGolden = $step2_spiral_radios.filter('#spiral-ratio-radio1'),
 					$step2_spiral_radiosCustom = $step2_spiral_radios.filter('#spiral-ratio-radio2'),
-					$step2_spiral_ratioCustom = $step2_spiral_ratio.find('.spiral-ratio-custom'),
+					$step2_spiral_ratioCustom = $step2_spiral_ratio_wrapper.find('.spiral-ratio-custom'),
 					polygonNames = ['Nullagon', 'Monogon', 'Digon', 'Triangle', 'Quadrilateral', 'Pentagon', 'Hexagon', 'Heptagon', 'Octagon', 'Nonagon', 'Decagon', 'Hendecagon', 'Dodecagon'],
 					ranges = {
 						x: [0, 1000],
@@ -1190,7 +1229,7 @@
 							return isValid;
 						},
 						iterate: function () {
-							var isValid = $step1_tools_iterator_checkbox.is(':checked'),
+							var isValid = $step1_tools_iterator_switchCheckbox.is(':checked'),
 									limit = $step1_tools_iterator_limitInput.val(),
 									angle = $step1_tools_iterator_angleInput.val(),
 									radius = $step1_tools_iterator_radiusInput.val();
@@ -1220,7 +1259,7 @@
 							return isValid;
 						},
 						animate: function () {
-							var isValid = $step1_tools_animator_checkbox.is(':checked'),
+							var isValid = $step1_tools_animator_switchCheckbox.is(':checked'),
 								interval = $step1_tools_animator_intervalInput.val(),
 								angle = $step1_tools_animator_angleInput.val(),
 								radius = $step1_tools_animator_radiusInput.val();
@@ -1301,52 +1340,143 @@
 						var content, result,
 							shapeObj = exportShapeStack[shapeIndex];
 
-						switch (shapeObj.type) {
-							case 'spiral':
-								content = 'Spiral';
-								content += ' [' + (shapeObj[3] === null ? 'GR' : shapeObj[3]) + ']';
-								content += ' (' + shapeObj[1] + ',' + shapeObj[2] + ')';
-								break;
-							case 'polygon':
-								content = (polygonNames[shapeObj.edges] || 'Polygon') + ' (' + shapeObj.edges + ')';
-								content += ' R: ' + shapeObj.radius;
-								break;
+						if (shapeObj.type === 'polygon') {
+							content = polygonNames[shapeObj.edges] || 'Polygon';
+						} else if (shapeObj.type === 'spiral') {
+							content = 'Spiral';
 						}
-
-						if (shapeObj.rotation && shapeObj.rotation.rotate) {
-							content += ' <' + shapeObj.rotation.theta + ': ';
-							content += (shapeObj.rotation.axisPoint.x === null || shapeObj.rotation.axisPoint.y === null ? 'MidPoint' : (shapeObj.rotation.axisPoint.x + ', ' + shapeObj.rotation.axisPoint.y)) + '>';
-						}
-
-						if (shapeObj.iteration && shapeObj.iteration.iterate) {
-							content += ' { +' + shapeObj.iteration.angle + ', +' + shapeObj.iteration.radius + '}x' + shapeObj.iteration.limit;
-						}
-
-						if (shapeObj.animation && shapeObj.animation.animate) {
-							content = ' <span title="+' + shapeObj.animation.angle + ', +' + shapeObj.animation.radius + ' every ' + shapeObj.animation.interval + '">@</span> ' + content;
-						}
-
-						content += ' (' + shapeObj.x + ',' + shapeObj.y + ')';
 
 						result = $stack_block.clone()._show().html(content);
-						result.append($('<button/>')
-								.addClass('stack-delete')
-								.text('X')
-								.click(deleteFromStack.bind(null, shapeIndex))
-						)
+						result
+							.append($('<button/>')
+								.addClass('stack-inspect')
+								.text('Inspect')
+								.css('border-color', shapeObj.color || '#FFF')
+								.click(makeInspectShape(shapeIndex))
+							)
 
-						if (shapeObj.color) {
-							result.css('color', shapeObj.color);
-						}
 
 						return result;
 					},
-					deleteFromStack = function (i) {
+					makeInspectShape = function (shapeIndex) {
+						return function (e) {
+							var os = $(this).offset(),
+								shapeObj = exportShapeStack[shapeIndex],
+								type, ob, str;
+
+							if (shapeObj.type === 'polygon') {
+								type = (polygonNames[shapeObj.edges] || 'Polygon') + ' (' + shapeObj.edges + ')';
+								$stack_modal.find('.modal-radius')._show().text('Radius: ' + shapeObj.radius);
+							} else if (shapeObj.type === 'spiral') {
+								type = 'Spiral';
+								$stack_modal.find('.modal-ratio')._show().text('Ratio: ' + (shapeObj.ratio || 'Golden'));
+							}
+
+							$stack_modal.find('.modal').text(shapeObj);
+
+							if (shapeObj.rotation && shapeObj.rotation.rotate) {
+								ob = $stack_modal.find('.modal-rotation-wrapper')._show();
+								ob.find('.modal-rotation-angle').text(round.any(shapeObj.rotation.theta, 5));
+								str = shapeObj.rotation.axisPoint.x === null || shapeObj.rotation.axisPoint.y === null ? 'MidPoint' : ('(' + shapeObj.rotation.axisPoint.x + ', ' + shapeObj.rotation.axisPoint.y + ')');
+								ob.find('.modal-rotation-axis').text(str);
+							} else {
+								$stack_modal.find('.modal-rotation-wrapper')._hide();
+							}
+
+							if (shapeObj.iteration && shapeObj.iteration.iterate) {
+								ob = $stack_modal.find('.modal-iteration-wrapper')._show();
+								ob.find('.modal-iteration-limit').text(shapeObj.iteration.limit);
+								ob.find('.modal-iteration-radius').text(shapeObj.iteration.radius);
+								ob.find('.modal-iteration-angle').text(shapeObj.iteration.angle);
+							} else {
+								$stack_modal.find('.modal-iteration-wrapper')._hide();
+							}
+
+							if (shapeObj.animation && shapeObj.animation.animate) {
+								ob = $stack_modal.find('.modal-animation-wrapper')._show();
+								ob.find('.modal-animation-interval').text(shapeObj.animation.interval);
+								ob.find('.modal-animation-radius').text(shapeObj.animation.radius);
+								ob.find('.modal-animation-angle').text(shapeObj.animation.angle);
+							} else {
+								$stack_modal.find('.modal-animation-wrapper')._hide();
+							}
+
+							$stack_modal.find('.modal-type').text(type);
+							$stack_modal.find('.modal-coords').text('Center: (' + shapeObj.x + ', ' + shapeObj.y + ')');
+
+							$stack_modal._show().css({
+								'top': os.top,
+								'left': e.offsetX,
+								'border-color': shapeObj.color || '#FFF'
+							});
+
+							$stack_modal.find('.stack-delete').attr('data-shape-index', shapeIndex);
+							$stack_modal.find('.stack-load-params').attr('data-shape-index', shapeIndex);
+						}
+					},
+					deleteFromStack = function (e) {
+						var i = $(e.target).attr('data-shape-index');
 						shapeStack.splice(i, 1);
 						exportShapeStack.splice(i, 1);
 						updateStackIndication();
 						drawStack();
 						$stack_block_controls_saveToLS.text('Save to LocalStorage *');
+						$stack_modal._hide();
+					},
+					loadParamsFromStack = function (e) {
+						var i = $(e.target).attr('data-shape-index'),
+							shapeObj = exportShapeStack[i];
+
+						$step1_radios.filter('[value="' + shapeObj.type + '"]').prop('checked', true);
+						$step1_coordsX.val(shapeObj.x);
+						$step1_coordsY.val(shapeObj.y);
+						$step1_colorInput.val(shapeObj.color || '#FFF');
+
+						if (shapeObj.type === 'polygon') {
+							$step1_radios
+							$step2_polygon_edges.val(shapeObj.edges);
+							$step2_polygon_radius.val(shapeObj.radius);
+						} else if (shapeObj.type === 'spiral') {
+							if (shapeObj.ratio) {
+								$step2_spiral_radiosCustom.prop('checked', true);
+								$step2_spiral_ratioCustom.val(shapeObj.ratio);
+							} else {
+								$step2_spiral_radiosGolden.prop('checked', true);
+							}
+						}
+
+						if (shapeObj.rotation.rotate) {
+							$step1_tools_rotator_switchCheckbox.prop('checked', true);
+							$step1_tools_rotator_angleInput.val(shapeObj.rotation.theta);
+							if (shapeObj.rotation.axisPoint.x && shapeObj.rotation.axisPoint.y) {
+								$step1_tools_rotator_axisCustomRadio.prop('checked', true);
+								$step1_tools_rotator_axisCustomXInput.val(shapeObj.rotation.axisPoint.x);
+								$step1_tools_rotator_axisCustomYInput.val(shapeObj.rotation.axisPoint.y);
+							} else {
+								$step1_tools_rotator_axisSMidpointRadio.prop('checked', true);
+							}
+						}
+
+						if (shapeObj.iteration.iterate) {
+							$step1_tools_iterator_switchCheckbox.prop('checked', true);
+							$step1_tools_iterator_limitInput.val(shapeObj.iteration.limit);
+							$step1_tools_iterator_angleInput.val(shapeObj.iteration.angle);
+							$step1_tools_iterator_radiusInput.val(shapeObj.iteration.radius);
+						}
+
+						if (shapeObj.animation.animate) {
+							$step1_tools_animator_switchCheckbox.prop('checked', true);
+							$step1_tools_animator_intervalInput.val(shapeObj.animation.interval);
+							$step1_tools_animator_angleInput.val(shapeObj.animation.angle);
+							$step1_tools_animator_radiusInput.val(shapeObj.animation.radius);
+						}
+
+						generateShape();
+						toggleTypeView();
+						toggleRotationView();
+						toggleIterationView();
+						toggleAnimationView();
+
 					},
 					drawStack = function (recursive) {
 						canvas.clear();
@@ -1528,19 +1658,23 @@
 							alert('No animations')
 						}
 					},
+					toggleTypeView = function () {
+						$step2_sections.filter('.step2-polygon')._toggle($step1_radiosPolygon.is(':checked'));
+						$step2_sections.filter('.step2-spiral')._toggle($step1_radiosSpiral.is(':checked'));
+					},
 					toggleRotationView = function () {
 						$step1_tools_rotator_section._toggle($step1_tools_rotator_switchCheckbox.is(':checked'));
 					},
 					toggleIterationView = function () {
-						$step1_tools_iterator_section._toggle($step1_tools_iterator_checkbox.is(':checked'));
+						$step1_tools_iterator_section._toggle($step1_tools_iterator_switchCheckbox.is(':checked'));
 					},
 					toggleAnimationView = function () {
-						if ($step1_tools_animator_checkbox.is(':checked')) {
+						if ($step1_tools_animator_switchCheckbox.is(':checked')) {
 							startAnimation();
 						} else {
 							stopAnimation();
 						}
-						$step1_tools_animator_section._toggle($step1_tools_animator_checkbox.is(':checked')); // Bitwise evaluates both! (Unrelated to here)
+						$step1_tools_animator_section._toggle($step1_tools_animator_switchCheckbox.is(':checked')); // Bitwise evaluates both! (Unrelated to here)
 					},
 					enhanceJQuery = function () {
 						$.isUn = function (ob) { return typeof(ob)==='undefined'; }
@@ -1613,16 +1747,8 @@
 
 				// Step 1 //
 				// First step radios
-				$step1_radios.change(function () {
-					var actions = {
-						"polygon": $step2_sections.filter('.step2-polygon'),
-						"spiral": $step2_sections.filter('.step2-spiral')
-					}
+				$step1_radios.change(toggleTypeView);
 
-					$step2_sections._hide();
-
-					actions[this.value]._show.call(actions[this.value]);
-				});
 				// Bind up/downs
 				$step1_coords
 						.add($step1_tools_rotator_axisCustomInputs)
@@ -1654,11 +1780,11 @@
 						.add($step1_tools_rotator_switchCheckbox)
 						.add($step1_colorInput)
 						.add($step2_spiral_radios)
-						.add($step1_tools_animator_checkbox)
+						.add($step1_tools_animator_switchCheckbox)
 							.change(generateShape)
 
 				$step1_tools_rotator_switchCheckbox.change(toggleRotationView);
-				$step1_tools_iterator_checkbox.change(toggleIterationView);
+				$step1_tools_iterator_switchCheckbox.change(toggleIterationView);
 
 				// Restart animation on playage
 				$controls_inputs
@@ -1720,6 +1846,8 @@
 				$stack_empty.click(localStorage.setItem.bind(localStorage, 'stack', ''))
 
 				$stack_block_controls_saveToLS.click(saveCurrentStackToLocalStorage);
+				$stack_modal.find('.stack-delete').click(deleteFromStack);
+				$stack_modal.find('.stack-load-params').click(loadParamsFromStack);
 
 				// Last action, beginning of scope!
 				if (lsStack) {
@@ -1745,6 +1873,18 @@
 						$stack_exportOutputInput.html(JSON.stringify(exportShapeStack))
 						$stack_exportWrapper.fadeIn(800);
 					}
+				});
+
+				$(document).click(function (e) {
+					var flag =
+							$(e.target).hasClass('stack-inspect') ||
+							$stack_modal.is(e.target) ||
+							jQuery.contains($stack_modal[0], e.target);
+
+					if ($stack_modal.is(':visible')) { // Only fumble with it if is visible (Don't raise the dead)
+						$stack_modal._toggle(flag);
+					}
+
 				})
 			},
 			mainCanvas = new geometryMaker("canvas0"),
