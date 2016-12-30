@@ -28,6 +28,10 @@
 			display: none;
 		}
 
+		.abs {
+			position: absolute; /* Yup yup! Absolute is great! */
+		}
+
 		.bad {
 			box-shadow: 0px 0px 7px 3px #e00f0f;
 		}
@@ -436,7 +440,7 @@
 									</li>
 									<li>
 										Angle step: <input type="text" class="iterator-angle number-input" value="0" />
-										<label for="iterator-angle-degreeMode" class="hidden">
+										<label for="iterator-angle-degreeMode" class="abs">
 											<input type="checkbox" id="iterator-angle-degreeMode" /> Degrees
 										</label>
 									</li>
@@ -463,7 +467,7 @@
 									</li>
 									<li>
 										Angle step: <input type="text" class="animator-angle number-input" value="0.004" />
-										<label for="animator-angle-degreeMode" class="hidden">
+										<label for="animator-angle-degreeMode" class="abs">
 											<input type="checkbox" id="animator-angle-degreeMode" /> Degrees
 										</label>
 									</li>
@@ -1029,6 +1033,7 @@
 					$step1_tools_iterator_limitInput = $step1_tools_iterator_inputs.filter('.iterator-limit'),
 					$step1_tools_iterator_angleInput = $step1_tools_iterator_inputs.filter('.iterator-angle'),
 					$step1_tools_iterator_radiusInput = $step1_tools_iterator_inputs.filter('.iterator-radius'),
+					$step1_tools_iterator_degMode = $step1_tools_iterator.find('#iterator-angle-degreeMode'),
 					$step1_tools_animator = $step1_tools.find('.animation-wrapper'),
 					$step1_tools_animator_section = $step1_tools_animator.find('.animator-section'),
 					$step1_tools_animator_checkbox = $step1_tools_animator.find('#animator-checkbox'),
@@ -1036,6 +1041,7 @@
 					$step1_tools_animator_intervalInput = $step1_tools_animator_inputs.filter('.animator-interval'),
 					$step1_tools_animator_angleInput = $step1_tools_animator_inputs.filter('.animator-angle'),
 					$step1_tools_animator_radiusInput = $step1_tools_animator_inputs.filter('.animator-radius'),
+					$step1_tools_animator_degMode = $step1_tools_animator.find('#animator-angle-degreeMode'),
 					$step1_tools_pushToStack = $step1_tools.find('.tools-pushToStack'),
 					$step1_tools_markersSwitch = $step1_tools.find('#tools-markers'),
 					$step1_tools_rotator_switchCheckbox = $step1_tools.find('#tools-rotator-checkbox'),
@@ -1451,6 +1457,7 @@
 								}
 							}
 						}, 10)
+						toggleAnimationView();
 					},
 					storeShape = generateShape.bind(null, null, true),
 					round = {
@@ -1459,13 +1466,17 @@
 							return +result;
 						},
 						two: function (num) {
-							return Math.round(num * 100) / 100;
+							return this.any(num, 2);
+						},
+						any: function (num, precision) {
+							var m = Math.pow(10, precision);
+							return Math.round(num * m) / m;
 						}
 					},
 					makeShapeMakingFunction = function (shape) {
 						return canvas.shape.bind(canvas, shape);
 					},
-					functionifyExportStack = function (single, fromAnimation) {
+					exportStackFunctionification = function (single, fromAnimation) {
 						if (!$.isUn(single)) {
 							shapeStack[single] = makeShapeMakingFunction((fromAnimation ? animationShapeStack : exportShapeStack)[single]);
 						} else {
@@ -1483,7 +1494,7 @@
 					},
 					importStack = function (stack) {
 						exportShapeStack = JSON.parse(stack);
-						functionifyExportStack();
+						exportStackFunctionification();
 						updateStackIndication();
 						drawStack();
 					},
@@ -1505,7 +1516,7 @@
 											if (shape.rotation.rotate) {
 												shape.rotation.theta += animation.angle;
 											}
-											functionifyExportStack(i, true);
+											exportStackFunctionification(i, true);
 										}
 									})(i), animation.interval)
 								)
@@ -1547,26 +1558,29 @@
 						}
 					},
 					startAnimation = function () {
-						stopAnimation();
 						setTimeout(function(){ // Timeout to respond after upDowns
 							var angle = +$step1_tools_animator_angleInput.val(),
 								radius = +$step1_tools_animator_radiusInput.val(),
 								params = getShapeParams();
-							intervals.push(
-								setInterval(function () {  /// Animation Interval ///
-									+radius && (params.radius += radius);
-									if (params.rotation.rotate) {
-										params.rotation.theta += angle;
-									}
-									drawStack();
-									canvas.shape(params);
+							if (params.type && isValid[params.type]()) {
+								stopAnimation();
+								intervals.push(
+									setInterval(function () {  /// Animation Interval ///
+										+radius && (params.radius += radius);
+										if (params.rotation.rotate) {
+											params.rotation.theta += angle;
+										}
+										drawStack();
+										canvas.shape(params);
 
-								}, +$step1_tools_animator_intervalInput.val())
-							)
+									}, +$step1_tools_animator_intervalInput.val())
+								)
+							}
 						},0)
 					},
 					stopAnimation = function () {
-						intervals.map(function(int) { clearInterval(int) })
+						intervals.map(function(int) { clearInterval(int) });
+						intervals = [];
 					},
 					bindColorMap = function () {
 						$step1_color_map_wrapper.find('area').each(function (th) {
@@ -1579,6 +1593,19 @@
 						$step1_colorInput.on('focus', function () {
 							$step1_color_map_wrapper._show();
 						})
+					},
+					degreeModeMaker = function ($neighbourElem) {
+						return function () {
+							var oldVal = +$neighbourElem.val(), newVal;
+
+							if ($(this).is(':checked')) { // To Degrees
+								newVal = round.two(oldVal * 180 / pi);
+							} else { // To Radian
+								newVal = round.any(oldVal * pi / 180, 5);
+							}
+
+							$neighbourElem.val(newVal);
+						}
 					};
 
 				bindColorMap();
@@ -1602,7 +1629,7 @@
 							.on("keydown", makeUpDownFunction(ranges.x, 10)); // Use x's for both, separatable tho
 				$step2_polygon_edges.on("keydown", makeUpDownFunction(ranges.edges));
 				$step2_polygon_radius.on("keydown", makeUpDownFunction(ranges.radius, 10));
-				$step2_spiral_ratioCustom.on("keydown", makeUpDownFunction(ranges.ratio, 0.02));
+				$step2_spiral_ratioCustom.on("keydown", makeUpDownFunction(ranges.ratio, 0.0075));
 				$step1_tools_rotator_angleInput.on("keydown", makeUpDownFunction(ranges.rotationAngle, 0.1));
 				$step1_tools_iterator_limitInput.on("keydown", makeUpDownFunction(ranges.iterationLimit, 1));
 				$step1_tools_iterator_angleInput.on("keydown", makeUpDownFunction(ranges.iterationAngle, 0.05));
@@ -1613,6 +1640,7 @@
 				$step1_tools_animator_radiusInput.on("keydown", makeUpDownFunction(ranges.iterationRadius, 1));
 
 				$step1_coords
+						.add($step1_tools_rotator_switchCheckbox)
 						.add($step1_tools_rotator_angleInput)
 						.add($step1_tools_rotator_axisCustomInputs)
 						.add($step1_tools_iterator_inputs)
@@ -1626,14 +1654,11 @@
 						.add($step1_tools_rotator_switchCheckbox)
 						.add($step1_colorInput)
 						.add($step2_spiral_radios)
+						.add($step1_tools_animator_checkbox)
 							.change(generateShape)
 
 				$step1_tools_rotator_switchCheckbox.change(toggleRotationView);
 				$step1_tools_iterator_checkbox.change(toggleIterationView);
-
-				$step1_tools_animator_checkbox
-						.add($step1_colorInput)
-						.change(toggleAnimationView);
 
 				// Restart animation on playage
 				$controls_inputs
@@ -1642,6 +1667,10 @@
 				$step2_spiral_ratioCustom.on("focus", function(){
 					$step2_spiral_radiosCustom.prop('checked', true).change();
 				})
+
+				$step1_tools_rotator_angleModeCheckbox.change(degreeModeMaker($step1_tools_rotator_angleInput));
+				$step1_tools_iterator_degMode.change(degreeModeMaker($step1_tools_iterator_angleInput));
+				$step1_tools_animator_degMode.change(degreeModeMaker($step1_tools_animator_angleInput));
 
 				$step1_tools_markersSwitch.change(function () {
 					if ($(this).is(':checked')) {
@@ -1668,7 +1697,7 @@
 						$stack_block_controls_saveToLS.text('Save to LocalStorage *');
 					})
 
-				$step1_center_wrapper.find('button').click(function () {
+				$step1_center_wrapper.find('button').click(function () { // Center Shape
 					var sCenter, curX, curY,
 						x = $canvas.width() /2,
 						y = $canvas.height()/2;
@@ -1686,6 +1715,7 @@
 						$step1_coordsY.val(y);
 					}
 					generateShape();
+					toggleAnimationView();
 				})
 				$stack_empty.click(localStorage.setItem.bind(localStorage, 'stack', ''))
 
