@@ -1513,7 +1513,9 @@
 					},
 					getShapeParams = function () {
 						var x, y, iterationParams = {}, rotationParams = {}, animationParams = {},
-							degreesModifier = $step1_tools_rotator_angleModeCheckbox.is(':checked') ? pi/180 : 1,
+							degreesModifierRotate = $step1_tools_rotator_angleModeCheckbox.is(':checked') ? pi/180 : 1,
+							degreesModifierIterate = $step1_tools_iterator_degMode.is(':checked') ? pi/180 : 1,
+							degreesModifierAnimate = $step1_tools_animator_degMode.is(':checked') ? pi/180 : 1,
 							color = isValid.color() ? $step1_colorInput.val() : '',
 							type = $step1_radios.filter(':checked').val(),
 							result;
@@ -1524,7 +1526,7 @@
 						if (isValid.rotate()) { // Rotate!
 							rotationParams = {
 								rotate: true,
-								theta: +$step1_tools_rotator_angleInput.val() * degreesModifier,
+								theta: +$step1_tools_rotator_angleInput.val() * degreesModifierRotate,
 								axisPoint: getAxisPoint(x, y)
 							}
 						}
@@ -1533,7 +1535,7 @@
 							iterationParams = {
 								iterate: true,
 								limit: +$step1_tools_iterator_limitInput.val(),
-								angle: +$step1_tools_iterator_angleInput.val(),
+								angle: +$step1_tools_iterator_angleInput.val() * degreesModifierIterate,
 								radius: +$step1_tools_iterator_radiusInput.val()
 							}
 						}
@@ -1542,7 +1544,7 @@
 							animationParams = {
 								animate: true,
 								interval: +$step1_tools_animator_intervalInput.val(),
-								angle: +$step1_tools_animator_angleInput.val(),
+								angle: +$step1_tools_animator_angleInput.val() * degreesModifierAnimate,
 								radius: +$step1_tools_animator_radiusInput.val()
 							}
 						}
