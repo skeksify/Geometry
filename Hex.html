@@ -1346,11 +1346,11 @@
 							content = 'Spiral';
 						}
 
-						result = $stack_block.clone()._show().html(content);
+						result = $stack_block.clone()._show();
 						result
 							.append($('<button/>')
 								.addClass('stack-inspect')
-								.text('Inspect')
+								.text(content)
 								.css('border-color', shapeObj.color || '#FFF')
 								.click(makeInspectShape(shapeIndex))
 							)
