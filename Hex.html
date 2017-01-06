@@ -490,6 +490,7 @@
 						</div>
 					</div>
 				</div>
+				<div><button class="tools-randomize">Randomize</button></div>
 			</div>
 		</div>
 	</div>
@@ -1585,16 +1586,18 @@
 										exportShapeStack.push(params);
 										saveCurrentStackToLocalStorage();
 										updateStackIndication();
+										startStackAnimations();
 									} else {
+										stopAnimation(true);
 										drawStack();
+										toggleAnimationView();
 										canvas.shape(params);
 									}
 								}
 							}
 						}, 10)
-						toggleAnimationView();
 					},
-					storeShape = generateShape.bind(null, null, true),
+					saveShapeToStack = generateShape.bind(null, null, true),
 					round = {
 						light: function (num) {
 							var result = ("" + num).substr(0, 6);
@@ -1749,6 +1752,44 @@
 
 							$neighbourElem.val(newVal);
 						}
+					},
+					pad = function (str, count) {
+						return Array(count - str.length + 1).join('0') + str;
+					},
+					random = function (min, max) {
+						return Math.random()*(max-min)+min;
+					},
+					randomR = function (min, max) {
+						return parseInt(random(min, max));
+					},
+					randomHex = function (min, max) {
+						return pad(randomR(min, max).toString(16), 2);
+					},
+					randomizeParams = function () {
+						if ($step1_radiosPolygon.is(':checked')){
+							$step2_polygon_edges.val(randomR(3, 9));
+							$step2_polygon_radius.val(randomR(20, 120));
+						}
+
+						if ($step1_radiosSpiral.is(':checked') && $step2_spiral_radiosCustom.is(':checked')){
+							$step2_spiral_ratioCustom.val(random(0.5, 1));
+						}
+
+						if ($step1_tools_iterator_switchCheckbox.is(':checked')) {
+							$step1_tools_iterator_limitInput.val(randomR(5, 250));
+							$step1_tools_iterator_angleInput.val(random(-0.08, 0.08));
+							$step1_tools_iterator_radiusInput.val(randomR(0, 10));
+						}
+
+						if ($step1_tools_animator_switchCheckbox.is(':checked')) {
+							$step1_tools_animator_intervalInput.val(randomR(10, 50));
+							$step1_tools_animator_angleInput.val(random(-0.02, 0.02));
+							//$step1_tools_animator_radiusInput.val(randomR(0, 10));
+						}
+
+						$step1_colorInput.val('#' + randomHex(0, 255) + randomHex(0, 255) + randomHex(0, 255))
+
+						generateShape();
 					};
 
 				bindColorMap();
@@ -1814,7 +1855,7 @@
 						generateShape();
 					}
 				})
-				$step1_tools_pushToStack.click(storeShape);
+				$step1_tools_pushToStack.click(saveShapeToStack);
 
 				$stack_startAnimations.click(startStackAnimations);
 				$stack_stopAnimations.click(function () {
@@ -1855,6 +1896,8 @@
 				$stack_modal.find('.stack-delete').click(deleteFromStack);
 				$stack_modal.find('.stack-load-params').click(loadParamsFromStack);
 
+				$step1_tools.find('.tools-randomize').click(randomizeParams);
+
 				// Last action, beginning of scope!
 				if (lsStack) {
 					importStack(lsStack);
@@ -1863,7 +1906,7 @@
 				$(document).keypress(function (e) {
 					if (e.keyCode === 83 && e.shiftKey) { // S Push to Stack
 						e.preventDefault();
-						storeShape();
+						saveShapeToStack();
 					}
 
 					if (e.keyCode === 73 && e.shiftKey) { // I Import
